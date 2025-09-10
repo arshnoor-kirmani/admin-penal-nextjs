@@ -28,13 +28,19 @@ export default function OTP_Component({
 }: {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  userId: Institute | undefined;
+  userId: string | undefined;
   userEmail: string | undefined;
 }) {
   const [value, setValue] = useState("");
+  const [user_id, setUserId] = useState(userId || "");
+  const [user_email, setuserEmail] = useState(userEmail || "");
+  const [resendDisabled, setResendDisabled] = useState<undefined | boolean>(
+    undefined
+  );
   const [hasGuessed, setHasGuessed] = useState<undefined | boolean>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
   const [inCorrectMsg, setInCorrectMsg] = useState("");
+  const [inputDisabled, setInputDisabled] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -47,27 +53,58 @@ export default function OTP_Component({
     e?.preventDefault?.();
     inputRef.current?.select();
     await new Promise((r) => setTimeout(r, 1_00));
-    console.log(e);
-    const res = await axios.post("/api/verify-otp", {
-      otp: e,
-      userId,
-      verifyType: "institute",
-    });
-    console.log(res);
-    if (res.data.success) {
-      setHasGuessed(true);
-    } else {
-      if (res.response.data.message === "Invalid OTP") {
-        setInCorrectMsg("invalid");
-      }
+    console.log("Input OTP", e);
+    setInputDisabled(true);
+    try {
+      const res = await axios
+        .post("/api/verify-otp", {
+          otp: e,
+          userId,
+          verifyType: "institute",
+        })
+        .then((res) => {
+          console.log("Input OTP", res);
+          if (res.data.success) {
+            setHasGuessed(true);
+          } else {
+            console.log("Input OTP", res.data.message);
+            setHasGuessed(false);
+            if (!res.data.success && res.data.message === "Invalid OTP") {
+              setInCorrectMsg("Invalid OTP. Please try again.");
+            } else if (
+              !res.data.success &&
+              res.data.message === "OTP has expired"
+            ) {
+              setInCorrectMsg("OTP has expired. Please request a new code.");
+            }
+          }
+        })
+        .finally(() => {
+          setInputDisabled(false);
+        });
+    } catch (error) {
+      console.error("Input OTP", error);
     }
     setTimeout(() => {
       inputRef.current?.blur();
     }, 20);
   }
-  async function ResendEmail() {
-    if (!userEmail || !userId) return;
+  async function ResendEmail({
+    user_Email,
+    user_Id,
+  }: {
+    user_Email: string;
+    user_Id: string;
+  }) {
+    setResendDisabled(true);
+    console.log("ResendEmail");
+    console.log("Resend Email -UserId", userId, userEmail);
+    if (!userId || !userEmail) return;
+    console.log("ResendEmail", userEmail, userId);
+
     const res = await SendNewInstituteVerificationEmail({ email: userEmail });
+    if (!res.data.success) setResendDisabled(false);
+
     console.log(res);
   }
   return (
@@ -118,9 +155,9 @@ export default function OTP_Component({
                 Close
               </Button>
             </DialogClose>
-            <Button type="button" onClick={() => setHasGuessed(undefined)}>
+            {/* <Button type="button" onClick={() => setHasGuessed(undefined)}>
               Reset
-            </Button>
+            </Button> */}
           </div>
         ) : (
           <div className="space-y-4">
@@ -130,6 +167,7 @@ export default function OTP_Component({
                 ref={inputRef}
                 value={value}
                 onChange={setValue}
+                disabled={inputDisabled}
                 containerClassName="flex items-center gap-3 has-disabled:opacity-50"
                 maxLength={6}
                 onFocus={() => setHasGuessed(undefined)}
@@ -159,8 +197,11 @@ export default function OTP_Component({
             <p className="text-center text-sm">
               <Button
                 variant={"link"}
+                disabled={resendDisabled}
                 className="cursor-pointer"
-                onClick={ResendEmail}
+                onClick={() =>
+                  ResendEmail({ user_Email: user_email, user_Id: user_id })
+                }
               >
                 Resend OTP
               </Button>

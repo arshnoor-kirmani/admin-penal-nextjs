@@ -10,9 +10,9 @@ export async function SendNewInstituteVerificationEmail({
   console.log("Sending email to ", email);
   // ======================================
   const user = await axios.post("/api/auth/get-institute-info", {
-    identier: email,
+    identifier: email,
   });
-  console.log(user);
+  console.log("Sedning Email", user);
   if (!user?.data?.user) {
     throw new Error("User not found");
   }
@@ -59,4 +59,5 @@ export async function SendNewInstituteVerificationEmail({
     html: Emailhtml,
   });
   console.log(sendEmail);
+  return sendEmail;
 }

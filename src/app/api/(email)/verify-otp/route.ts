@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     if (!isValid) {
       return NextResponse.json(
         { message: "Invalid OTP", success: false },
-        { status: 400 }
+        { status: 201 }
       );
     }
     const ExpiryDate = new Date(user.verifyExpiry || "");
@@ -36,8 +36,8 @@ export async function POST(request: Request) {
       );
     }
     user.isVerify = true;
-    user.verifyCode = undefined;
-    user.verifyExpiry = undefined;
+    // user.verifyCode = undefined;
+    // user.verifyExpiry = undefined;
     await user.save();
     return NextResponse.json(
       { message: "OTP verified successfully", success: true },

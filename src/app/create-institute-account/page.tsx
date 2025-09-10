@@ -78,7 +78,7 @@ export default function Page() {
   const [value, setValue] = React.useState("");
   const [checkingEmail, setCheckingEmail] = React.useState(false);
   const [submitDisabled, setSubmitDisabled] = React.useState(false);
-  const [userId, setUserId] = useState();
+  const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState();
   const route = useRouter();
   // =====================================================
@@ -117,9 +117,10 @@ export default function Page() {
           .then(async (response) => {
             // Handle success
             const user = response.data.user;
-            console.log(user);
+            console.log("Create Instiute", user);
             if (response.data.success) {
               setUserId(user?._id);
+              setUserEmail(user.email);
               await SendNewInstituteVerificationEmail({
                 email: user.email,
               })
@@ -189,7 +190,7 @@ export default function Page() {
     toast.promise(myPromise, {
       loading: "Loading....",
       success: (data) => {
-        return `Account has been create please verify`;
+        return "Your institute account has been created. Please verify your account.";
       },
       error: "Error",
     });

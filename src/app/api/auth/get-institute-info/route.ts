@@ -6,15 +6,22 @@ export async function POST(request: Request) {
   try {
     const { identifier } = await request.json();
     await dbConnect({ Database_name: "institutes" });
-    console.log(identifier);
+    console.log("Get Institute", identifier);
     try {
       const user = await InstituteModel.findOne({
         $or: [{ email: identifier }, { username: identifier }],
       });
-      console.log(user);
+      console.log("Get Institute", user);
       if (user) {
         return NextResponse.json(
           { message: "User Finded", success: true, user },
+          {
+            status: 200,
+          }
+        );
+      } else {
+        return NextResponse.json(
+          { message: "Email not registered", success: false },
           {
             status: 200,
           }
