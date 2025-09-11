@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         );
       }
       return NextResponse.json(
-        { message: "Email not registered", registered: false },
+        { message: "Email not registered", registered: undefined },
         {
           status: 200,
         }

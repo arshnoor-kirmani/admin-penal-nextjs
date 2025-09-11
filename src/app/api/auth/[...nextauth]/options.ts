@@ -2,51 +2,75 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import bcrypt from "bcryptjs";
-import InstituteModel from "@/models/InstituteSchema";
+import InstituteModel, { Institute } from "@/models/InstituteSchema";
 import dbConnect from "@/lib/DatabaseConnect";
+import { NextResponse } from "next/server";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "credentials",
+      id: "institute-login",
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
-        loginType: { label: "Login Type", type: "text" },
       },
       async authorize(credentials: any): Promise<any> {
+        console.log(credentials);
         if (!credentials || !credentials.email || !credentials.password) {
           console.error("Please provide email and password both.");
           throw new Error("Please provide email and password both.");
         }
         // Connect to the database
-        if (credentials.loginType === "institute") {
-          await dbConnect({ Database_name: "institutes" });
-          // Find the user by email or username
-          const institute = await InstituteModel.findOne({
-            email: credentials.email,
-          });
-          if (!institute) {
-            console.error("No institute found with the provided email.");
-            throw new Error("No institute found with the provided email.");
-          }
-          // Compare the provided password with the hashed password in the database
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            institute.password.toString()
+        await dbConnect({ Database_name: "institutes" });
+        // Find the user by email or username
+        const institute = await InstituteModel.findOne({
+          email: credentials.email,
+        });
+        console.log("institute finded", institute);
+
+        if (!institute) {
+          console.error("No institute found with the provided email.");
+          // throw new Error("No institute found with the provided email.");
+          return NextResponse.json(
+            {
+              message: "No institute found with the provided email.",
+              success: false,
+            },
+            { status: 201 }
           );
-          if (!isPasswordValid) {
-            console.error("Invalid password.");
-            throw new Error("Invalid password.");
-          }
-          console.log("User authenticated successfully:", institute);
-          return institute;
         }
+        // Compare the provided password with the hashed password in the database
+        const isValidPassword = await bcrypt.compare(
+          credentials.password,
+          institute.password.toString()
+        );
+        console.log(
+          isValidPassword,
+          credentials.password,
+          institute.password == institute.password.toString()
+        );
+        if (!isValidPassword) {
+          console.error("Invalid password.");
+          throw new Error("Invalid password.");
+          return null;
+        }
+        console.log("User authenticated successfully:", institute);
+        return institute;
       },
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log("SignIn Method", {
+        user,
+        account,
+        profile,
+        email,
+        credentials,
+      });
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token._id = user._id?.toString(); // Convert ObjectId to string
@@ -71,6 +95,6 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/sign-in",
+    signIn: "/institute-account-login",
   },
 };
