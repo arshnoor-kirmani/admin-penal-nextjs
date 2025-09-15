@@ -30,7 +30,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import axios, { all } from "axios";
 import { useRouter } from "next/navigation";
 import InstituteVerificationOtpEmailTemplate from "@/components/emails/newUserVerification";
-import { SendNewInstituteVerificationEmail } from "@/models/SendingEmails";
+import { SendNewInstituteVerificationEmail } from "@/models/Email/SendingEmails";
 import { Label } from "@/components/ui/label";
 import OTP_Component from "@/components/custom/opt-input";
 // import { InputOTPForm } from "@/components/custom/opt-input";
@@ -69,6 +69,7 @@ const myPromise = new Promise<{ name: string }>((resolve) => {
 
 export default function Page() {
   const [open, setOpen] = React.useState(false);
+  const [Success, setSuccess] = React.useState(false);
   const [OTP_Code, setOTP_Code] = React.useState("");
   const [OTP_Expiry, setOTP_Expiry] = React.useState(
     "2025-09-09T06:02:09.783Z"
@@ -401,6 +402,8 @@ export default function Page() {
         setOpen={setOpen}
         userId={userId}
         userEmail={userEmail}
+        VerificationType="verify"
+        setSuccess={setSuccess}
       />
     </div>
   );

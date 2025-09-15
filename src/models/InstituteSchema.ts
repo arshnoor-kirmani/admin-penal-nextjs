@@ -27,6 +27,9 @@ export interface Institute extends Document {
   isVerify: boolean;
   verifyCode?: Number;
   verifyExpiry?: Date;
+  forget_password_code?: Number;
+  forget_password_code_expriy?: Date;
+  reset_password_id?: String;
 }
 
 const InstituteSchema = new Schema<Institute>({
@@ -44,6 +47,9 @@ const InstituteSchema = new Schema<Institute>({
   isVerify: { type: Boolean, default: false },
   verifyCode: { type: Number },
   verifyExpiry: { type: Date },
+  forget_password_code: { type: Number, default: 12345 },
+  forget_password_code_expriy: { type: Date },
+  reset_password_id: { type: String },
 });
 
 const InstituteModel =

@@ -9,6 +9,7 @@ export async function GET(request: Request) {
     await dbConnect({ Database_name: "institutes" });
     try {
       const exitingInstiute = await InstituteModel.findOne({ email });
+      console.log(exitingInstiute);
       if (exitingInstiute) {
         return NextResponse.json(
           {
@@ -25,7 +26,12 @@ export async function GET(request: Request) {
           status: 200,
         }
       );
-    } catch (error) {}
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Error in finding account" },
+        { status: 400 }
+      );
+    }
   } catch (error) {
     return new Response("Internal Server Error", { status: 500 });
   }

@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Institute } from "@/models/InstituteSchema";
-import { SendNewInstituteVerificationEmail } from "@/models/SendingEmails";
+import { SendNewInstituteVerificationEmail } from "@/models/Email/SendingEmails";
 import axios from "axios";
 
 // const CORRECT_CODE = "6548";
@@ -25,12 +25,17 @@ export default function OTP_Component({
   setOpen,
   userId,
   userEmail,
+  setSuccess,
+  VerificationType,
 }: {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   userId: string | undefined;
   userEmail: string | undefined;
+  VerificationType: string;
 }) {
+  console.log(VerificationType);
   const [value, setValue] = useState("");
   const [user_id, setUserId] = useState(userId || "");
   const [user_email, setuserEmail] = useState(userEmail || "");
@@ -56,16 +61,19 @@ export default function OTP_Component({
     console.log("Input OTP", e);
     setInputDisabled(true);
     try {
+      console.log("VerificationType", VerificationType);
       const res = await axios
         .post("/api/verify-otp", {
           otp: e,
           userId,
           verifyType: "institute",
+          VerificationType,
         })
         .then((res) => {
           console.log("Input OTP", res);
           if (res.data.success) {
             setHasGuessed(true);
+            setSuccess(true);
           } else {
             console.log("Input OTP", res.data.message);
             setHasGuessed(false);

@@ -6,7 +6,7 @@ import { verify } from "node:crypto";
 
 export async function POST(request: Request) {
   try {
-    const { otp, userId, verifyType } = await request.json();
+    const { otp, userId, verifyType, VerificationType } = await request.json();
     console.log(otp, userId, verifyType);
     let user: Institute | null = null;
     if (verifyType === "institute") {
@@ -19,15 +19,27 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    const isValid = otp === (user.verifyCode || "")?.toString();
-    console.log(isValid, otp, user.verifyCode);
+    const Code =
+      VerificationType === "verify"
+        ? user.verifyCode?.toString()
+        : VerificationType === "forget-password"
+        ? user.forget_password_code?.toString()
+        : "";
+    const isValid = otp === (Code || "");
+    console.log(isValid, "otp", otp, "Code", Code);
     if (!isValid) {
       return NextResponse.json(
         { message: "Invalid OTP", success: false },
-        { status: 201 }
+        { status: 401 }
       );
     }
-    const ExpiryDate = new Date(user.verifyExpiry || "");
+    const expiry =
+      VerificationType === "verify"
+        ? user.verifyExpiry
+        : VerificationType === "forget-password"
+        ? user.forget_password_code_expriy
+        : "";
+    const ExpiryDate = expiry ? new Date(expiry) : new Date(0);
     const Now = new Date();
     if (ExpiryDate < Now) {
       return NextResponse.json(

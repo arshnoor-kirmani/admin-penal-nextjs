@@ -1,10 +1,8 @@
 "use client";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,18 +21,13 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import React, { FC, use, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { LucideEye, LucideEyeOff, LucideLoader } from "lucide-react";
 import Link from "next/link";
 import { useDebounceCallback } from "usehooks-ts";
-import axios, { all } from "axios";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import InstituteVerificationOtpEmailTemplate from "@/components/emails/newUserVerification";
-import { SendNewInstituteVerificationEmail } from "@/models/SendingEmails";
-import { Label } from "@/components/ui/label";
-import OTP_Component from "@/components/custom/opt-input";
 import { signIn } from "next-auth/react";
-// import { InputOTPForm } from "@/components/custom/opt-input";
 
 const formSchema = z.object({
   Email: z
@@ -57,14 +50,16 @@ const formSchema = z.object({
 });
 // PromiseRejectionEvent(myPromise)
 
-export default function SignInForm() {
+export default function SignInForm({
+  SignInType,
+}: {
+  SignInType: "institute-login" | "student-login";
+}) {
   const [formDisabled, setFormDisabled] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [value, setValue] = React.useState("");
   const [checkingEmail, setCheckingEmail] = React.useState(false);
   const [submitDisabled, setSubmitDisabled] = React.useState(false);
-  const [userId, setUserId] = useState("");
-  const [userEmail, setUserEmail] = useState();
   const route = useRouter();
   // =====================================================
   const debounced = useDebounceCallback(setValue, 700);
@@ -82,7 +77,7 @@ export default function SignInForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     setFormDisabled(true);
-    const result = await signIn("institute-login", {
+    const result = await signIn(SignInType, {
       redirect: false,
       email: values.Email,
       password: values.password,
@@ -125,7 +120,7 @@ export default function SignInForm() {
             if (checkEmail.data.registered === false) {
               form.setError("Email", {
                 type: "manual",
-                message: `Email is registered but not verified                   `,
+                message: `Email is registered but not verified`,
               });
             } else if (checkEmail.data.registered === undefined) {
               form.setError("Email", {
@@ -148,9 +143,21 @@ export default function SignInForm() {
       <div className="w-[400px] h-[50%] overflow-hidden">
         <Card className="">
           <CardHeader className="text-center ">
-            <CardTitle>Login Institute Account</CardTitle>
+            <CardTitle>
+              Login{" "}
+              {SignInType === "institute-login"
+                ? "Institute Account"
+                : SignInType === "student-login"
+                ? "Student Account"
+                : ""}
+            </CardTitle>
             <CardDescription className="text-xs">
-              Sign in to your institute account
+              Sign in to your{" "}
+              {SignInType === "institute-login"
+                ? "Institute Account"
+                : SignInType === "student-login"
+                ? "Student Account"
+                : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -231,7 +238,7 @@ export default function SignInForm() {
                       <FormDescription>
                         {" "}
                         <Link
-                          href="/forgot-password"
+                          href="institute-forgot-password"
                           className="text-muted-foreground w-full text-xs hover:underline"
                         >
                           Forgot Password?
@@ -248,16 +255,20 @@ export default function SignInForm() {
                 >
                   Submit
                 </Button>
-                <Link href="create-institute-account">
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    className="w-full cursor-pointer"
-                    disabled={formDisabled}
-                  >
-                    Create new Instiute Account
-                  </Button>
-                </Link>
+                {SignInType === "institute-login" ? (
+                  <Link href="create-institute-account">
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      className="w-full cursor-pointer"
+                      disabled={formDisabled}
+                    >
+                      Create new Institute Account
+                    </Button>
+                  </Link>
+                ) : (
+                  ""
+                )}
               </form>
             </Form>
           </CardContent>
