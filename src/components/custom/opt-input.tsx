@@ -17,6 +17,8 @@ import {
 import { Institute } from "@/models/InstituteSchema";
 import { SendNewInstituteVerificationEmail } from "@/models/Email/SendingEmails";
 import axios from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // const CORRECT_CODE = "6548";
 
@@ -27,6 +29,7 @@ export default function OTP_Component({
   userEmail,
   setSuccess,
   VerificationType,
+  redirectTo,
 }: {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -34,8 +37,11 @@ export default function OTP_Component({
   userId: string | undefined;
   userEmail: string | undefined;
   VerificationType: string;
+  redirectTo: boolean | string;
 }) {
   console.log(VerificationType);
+  const router = useRouter();
+
   const [value, setValue] = useState("");
   const [user_id, setUserId] = useState(userId || "");
   const [user_email, setuserEmail] = useState(userEmail || "");
@@ -62,34 +68,57 @@ export default function OTP_Component({
     setInputDisabled(true);
     try {
       console.log("VerificationType", VerificationType);
-      const res = await axios
-        .post("/api/verify-otp", {
-          otp: e,
-          userId,
-          verifyType: "institute",
-          VerificationType,
-        })
-        .then((res) => {
-          console.log("Input OTP", res);
-          if (res.data.success) {
-            setHasGuessed(true);
-            setSuccess(true);
-          } else {
-            console.log("Input OTP", res.data.message);
-            setHasGuessed(false);
-            if (!res.data.success && res.data.message === "Invalid OTP") {
-              setInCorrectMsg("Invalid OTP. Please try again.");
-            } else if (
-              !res.data.success &&
-              res.data.message === "OTP has expired"
-            ) {
-              setInCorrectMsg("OTP has expired. Please request a new code.");
-            }
-          }
-        })
-        .finally(() => {
-          setInputDisabled(false);
-        });
+      const Promis: Promise<{ message: string }> = new Promise(
+        async (resolve, reject) => {
+          const res = await axios
+            .post("/api/verify-otp", {
+              otp: e,
+              userId,
+              verifyType: "institute",
+              VerificationType,
+            })
+            .then((res) => {
+              console.log("Input OTP", res);
+              if (res.data.success) {
+                setHasGuessed(true);
+                if (redirectTo) {
+                  router.push(redirectTo as string);
+                }
+                setSuccess(true);
+                setOpen(false);
+                resolve({ message: "OTP verified successfully" });
+              } else {
+                console.log("Input OTP", res.data.message);
+                setHasGuessed(false);
+                if (!res.data.success && res.data.message === "Invalid OTP") {
+                  reject({ error: "Invalid OTP. Please try again." });
+                  setInCorrectMsg("Invalid OTP. Please try again.");
+                } else if (
+                  !res.data.success &&
+                  res.data.message === "OTP has expired"
+                ) {
+                  reject({
+                    error: "OTP has expired. Please request a new code.",
+                  });
+                  setInCorrectMsg(
+                    "OTP has expired. Please request a new code."
+                  );
+                }
+              }
+            })
+            .finally(() => {
+              setInputDisabled(false);
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        }
+      );
+      toast.promise(Promis, {
+        loading: "Verifying OTP...",
+        success: (data: { message: string }) => data.message,
+        error: (error: { error: string }) => error.error,
+      });
     } catch (error) {
       console.error("Input OTP", error);
     }

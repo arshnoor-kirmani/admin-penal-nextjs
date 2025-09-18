@@ -27,10 +27,13 @@ import {
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const PROJECT_NAME = "Origin UI";
 
-export default function ChangePasswordForm() {
+export default function ChangePasswordForm({identifier, userType, open, setOpen}: {identifier: string, userType: string, open: boolean, setOpen: (open: boolean) => void}) {
   const formSchema = z.object({
     password: z.string().min(5, {
       message: "Password must be at least 5 characters.",
@@ -47,10 +50,32 @@ export default function ChangePasswordForm() {
     },
   });
   const id = useId();
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm_password, setconfirmPassword] = useState("");
+  // =================================================
   async function onSubmit(value: z.infer<typeof formSchema>) {
+    console.log("identifier", identifier);
+    console.log("userType", userType);
     console.log("passwod chenaged", value);
+    const Promis=new Promise(async (resolve, reject) => {
+      const response = await axios.post("/api/auth/reset-password", 
+        { identifier: identifier, userType: userType, password: value.password }
+      ).catch((error) => {
+        reject({error: error.message});
+      }).then((res: any) => {
+        resolve(res.data.message || "Password changed successfully");
+        setOpen(false);
+        router.push("/institute-account-login");
+      }).finally(() => {
+        resolve(true);
+      })
+    })
+    toast.promise(Promis, {
+      loading: "Changing password...",
+      success: "Password changed successfully",
+      error: (error) => error.error || "Internal server error",
+    });
   }
   useEffect(() => {
     if (!confirm_password) return;
@@ -66,10 +91,7 @@ export default function ChangePasswordForm() {
     );
   }, [confirm_password, password]);
   return (
-    <Dialog open={true}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Delete project</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <div className="flex flex-col items-center gap-2">
           <div
@@ -80,11 +102,10 @@ export default function ChangePasswordForm() {
           </div>
           <DialogHeader>
             <DialogTitle className="sm:text-center">
-              Final confirmation
+              Change Password
             </DialogTitle>
             <DialogDescription className="sm:text-center">
-              This action cannot be undone. To confirm, please enter the project
-              name <span className="text-foreground">Origin UI</span>.
+              This action cannot be undone. To confirm, please enter the new password.
             </DialogDescription>
           </DialogHeader>
         </div>

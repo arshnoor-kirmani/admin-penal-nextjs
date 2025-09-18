@@ -28,17 +28,17 @@ import { useForm } from "react-hook-form";
 import { useDebounceCallback } from "usehooks-ts";
 import z, { email } from "zod";
 import OTP_Component from "../opt-input";
+import ChangePasswordForm from "./changepassword";
+import { toast } from "sonner";
 
 export default function forgotPage({
   forgetUserType,
-  setVerifySuccess,
 }: {
-  forgetUserType: "institute" | "student";
-  setVerifySuccess: React.Dispatch<React.SetStateAction<boolean>>;
+  forgetUserType: "institutes" | "student";
 }) {
   const [formDisabled, setFormDisabled] = React.useState(false);
-  // const [verifySuccess, setVerifySuccess] = React.useState(false);
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [verifySuccess, setVerifySuccess] = React.useState(false);
+  const [inputDisabled, setInputDisabled] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [userId, setUserId] = React.useState("");
   const [userEmail, setUserEmail] = React.useState<string>("");
@@ -76,22 +76,36 @@ export default function forgotPage({
   // ==================================================
   async function onSubmit(value: z.infer<typeof forgetSchema>) {
     console.log(value);
+    setFormDisabled(true);
     setUserEmail(value.Email);
-    const result = await axios
-      .post("/api/auth/forgot-password", {
-        email: value.Email,
-        Database_name: "institutes",
-      })
-      .then(async (e) => {
-        const res = await forgetInstiutePassword({ email: value.Email }).then(
-          (res) => {
-            setUserId(res.userId);
-            setOpen(true);
-          }
-        );
-        console.log(res);
-      });
-    console.log(result);
+    const Promis = new Promise(async (resolve, reject) => {
+      const result = await axios
+        .post("/api/auth/forgot-password", {
+          email: value.Email,
+          Database_name: "institutes",
+        })
+        .then(async (e) => {
+          const res = await forgetInstiutePassword({ email: value.Email }).then(
+            (res) => {
+              setUserId(res.userId);
+              setOpen(true);
+            }
+          );
+          console.log(res);
+        })
+        .catch((error) => {
+          reject(error);
+        })
+        .finally(() => {
+          setFormDisabled(false);
+          resolve(true);
+        });
+    });
+    toast.promise(Promis, {
+      loading: "Sending OTP to email...",
+      success: "OTP sent to email",
+      error: (error) => error.error,
+    });
   }
   // =================================================
 
@@ -100,36 +114,51 @@ export default function forgotPage({
       if (value.length > 0) {
         setCheckingEmail(true);
       }
-      form
-        .trigger("Email")
-        .then(async (isValid) => {
-          if (isValid) {
-            setCheckingEmail(true);
-            const checkEmail = await axios.get(
-              "/api/auth/check-register-email",
-              {
-                params: { email: value },
+      const Promis = new Promise((resolve, reject) => {
+        form
+          .trigger("Email")
+          .then(async (isValid) => {
+            if (isValid) {
+              setCheckingEmail(true);
+              const checkEmail = await axios.get(
+                "/api/auth/check-register-email",
+                {
+                  params: { email: value },
+                }
+              );
+              console.log(checkEmail.data);
+              if (checkEmail.data.registered === false) {
+                reject({ error: "Email is registered but not verified" });
+                form.setError("Email", {
+                  type: "manual",
+                  message: `Email is registered but not verified`,
+                });
+              } else if (checkEmail.data.registered === undefined) {
+                reject({ error: "No account found with this email address" });
+                form.setError("Email", {
+                  type: "manual",
+                  message: "No account found with this email address",
+                });
               }
-            );
-            console.log(checkEmail.data);
-            if (checkEmail.data.registered === false) {
-              form.setError("Email", {
-                type: "manual",
-                message: `Email is registered but not verified                   `,
-              });
-            } else if (checkEmail.data.registered === undefined) {
-              form.setError("Email", {
-                type: "manual",
-                message: "No account found with this email address",
-              });
+              setSubmitDisabled(false);
+              resolve(true);
+              return;
             }
-            setSubmitDisabled(false);
-            return;
-          }
-        })
-        .finally(() => {
-          setCheckingEmail(false);
-        });
+          })
+          .finally(() => {
+            setCheckingEmail(false);
+            resolve(true);
+          })
+          .catch((error) => {
+            setCheckingEmail(false);
+            reject(error);
+          });
+      });
+      toast.promise(Promis, {
+        loading: "Checking email...",
+        success: "Email found",
+        error: (error) => error.error,
+      });
     }
   }, [value]);
   return (
@@ -139,7 +168,7 @@ export default function forgotPage({
           <CardHeader className="text-center ">
             <CardTitle>
               forget{" "}
-              {forgetUserType === "institute"
+              {forgetUserType === "institutes"
                 ? "Institute Account"
                 : forgetUserType === "student"
                 ? "Student Account"
@@ -148,7 +177,7 @@ export default function forgotPage({
             </CardTitle>
             <CardDescription className="text-xs">
               Change your{" "}
-              {forgetUserType === "institute"
+              {forgetUserType === "institutes"
                 ? "Institute Account"
                 : forgetUserType === "student"
                 ? "Student Account"
@@ -174,7 +203,7 @@ export default function forgotPage({
                           className="placeholder:text-xs"
                           type="text"
                           placeholder="you@example.com"
-                          disabled={formDisabled}
+                          disabled={formDisabled || inputDisabled}
                           {...field}
                           onChange={(e) => {
                             field.onChange(e.target.value);
@@ -219,6 +248,13 @@ export default function forgotPage({
         userId={userId}
         userEmail={userEmail}
         setSuccess={setVerifySuccess}
+        redirectTo={false}
+      />
+      <ChangePasswordForm
+        identifier={userEmail}
+        userType={forgetUserType}
+        open={verifySuccess}
+        setOpen={setVerifySuccess}
       />
     </div>
   );

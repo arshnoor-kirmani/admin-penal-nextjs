@@ -11,7 +11,22 @@ export interface Course {
   syllabus: Object;
   teacher: String;
 }
-
+export interface rules {
+  all: true;
+  profile_edit: true;
+  send_message: true;
+  inbox_message: true;
+  website_setting: true;
+  add_teacher: true;
+  edit_teacher: true;
+  delete_teacher: true;
+  salary_management: true;
+  add_student: true;
+  edit_student: true;
+  delete_student: true;
+  fees_management: true;
+  result_permession: true;
+}
 export interface Institute extends Document {
   username: String;
   email: String;
@@ -29,7 +44,7 @@ export interface Institute extends Document {
   verifyExpiry?: Date;
   forget_password_code?: Number;
   forget_password_code_expriy?: Date;
-  reset_password_id?: String;
+  rules: rules;
 }
 
 const InstituteSchema = new Schema<Institute>({
@@ -49,7 +64,25 @@ const InstituteSchema = new Schema<Institute>({
   verifyExpiry: { type: Date },
   forget_password_code: { type: Number, default: 12345 },
   forget_password_code_expriy: { type: Date },
-  reset_password_id: { type: String },
+  rules: {
+    type: Object,
+    default: {
+      all: true,
+      profile_edit: true,
+      send_message: true,
+      inbox_message: true,
+      website_setting: true,
+      add_teacher: true,
+      edit_teacher: true,
+      delete_teacher: true,
+      salary_management: true,
+      add_student: true,
+      edit_student: true,
+      delete_student: true,
+      fees_management: true,
+      result_permession: true,
+    },
+  },
 });
 
 const InstituteModel =

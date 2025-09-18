@@ -404,6 +404,7 @@ export default function Page() {
         userEmail={userEmail}
         VerificationType="verify"
         setSuccess={setSuccess}
+        redirectTo={"institute-account-login"}
       />
     </div>
   );
