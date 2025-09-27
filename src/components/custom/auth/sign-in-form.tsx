@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { LucideEye, LucideEyeOff, LucideLoader } from "lucide-react";
 import Link from "next/link";
 import { useDebounceCallback } from "usehooks-ts";
@@ -53,13 +53,13 @@ const formSchema = z.object({
 export default function SignInForm({
   SignInType,
 }: {
-  SignInType: "institute-login" | "student-login";
+  SignInType: "institute-login" | "student-login" | "teacher-login";
 }) {
-  const [formDisabled, setFormDisabled] = React.useState(false);
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [value, setValue] = React.useState("");
-  const [checkingEmail, setCheckingEmail] = React.useState(false);
-  const [submitDisabled, setSubmitDisabled] = React.useState(false);
+  const [formDisabled, setFormDisabled] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [value, setValue] = useState("");
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
   const route = useRouter();
   // =====================================================
   const debounced = useDebounceCallback(setValue, 700);
@@ -77,6 +77,7 @@ export default function SignInForm({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     setFormDisabled(true);
+    // SignIntype ===== Next Auth credetials id
     const result = await signIn(SignInType, {
       redirect: false,
       email: values.Email,

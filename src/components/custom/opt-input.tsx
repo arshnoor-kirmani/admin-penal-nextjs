@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Institute } from "@/models/InstituteSchema";
 import { SendNewInstituteVerificationEmail } from "@/models/Email/SendingEmails";
 import axios from "axios";
 import { toast } from "sonner";

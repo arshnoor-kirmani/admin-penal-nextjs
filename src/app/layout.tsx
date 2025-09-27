@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/custom/theme-provider";
 import { ThemeToggle } from "@/components/custom/theme-toggle";
 import { Toaster } from "sonner";
+import StoreProvider from "@/components/custom/StoreProvider";
 
 export const metadata: Metadata = {
   title: "Admin Panel",
@@ -23,7 +24,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <StoreProvider>{children}</StoreProvider>
           <div className="absolute top-1 right-1">
             <ThemeToggle />
           </div>

@@ -23,13 +23,13 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import React, { FC, use, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LucideEye, LucideEyeOff, LucideLoader } from "lucide-react";
 import Link from "next/link";
 import { useDebounceCallback } from "usehooks-ts";
 import axios, { all } from "axios";
 import { useRouter } from "next/navigation";
-import InstituteVerificationOtpEmailTemplate from "@/components/emails/newUserVerification";
+// import InstituteVerificationOtpEmailTemplate from "@/components/emails/newUserVerification";
 import { SendNewInstituteVerificationEmail } from "@/models/Email/SendingEmails";
 import { Label } from "@/components/ui/label";
 import OTP_Component from "@/components/custom/opt-input";
@@ -68,17 +68,15 @@ const myPromise = new Promise<{ name: string }>((resolve) => {
 // PromiseRejectionEvent(myPromise)
 
 export default function Page() {
-  const [open, setOpen] = React.useState(false);
-  const [Success, setSuccess] = React.useState(false);
-  const [OTP_Code, setOTP_Code] = React.useState("");
-  const [OTP_Expiry, setOTP_Expiry] = React.useState(
-    "2025-09-09T06:02:09.783Z"
-  );
-  const [allInputDisabled, setAllInputDisabled] = React.useState(false);
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [value, setValue] = React.useState("");
-  const [checkingEmail, setCheckingEmail] = React.useState(false);
-  const [submitDisabled, setSubmitDisabled] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [Success, setSuccess] = useState(false);
+  const [OTP_Code, setOTP_Code] = useState("");
+  const [OTP_Expiry, setOTP_Expiry] = useState("2025-09-09T06:02:09.783Z");
+  const [allInputDisabled, setAllInputDisabled] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [value, setValue] = useState("");
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState();
   const route = useRouter();
@@ -198,7 +196,7 @@ export default function Page() {
   }
 
   // =====================================================
-  React.useEffect(() => {
+  useEffect(() => {
     if (form.getValues("Email") !== "") {
       if (value.length > 0) {
         setCheckingEmail(true);

@@ -33,7 +33,17 @@ import { useRouter } from "next/navigation";
 
 const PROJECT_NAME = "Origin UI";
 
-export default function ChangePasswordForm({identifier, userType, open, setOpen}: {identifier: string, userType: string, open: boolean, setOpen: (open: boolean) => void}) {
+export default function ChangePasswordForm({
+  identifier,
+  userType,
+  open,
+  setOpen,
+}: {
+  identifier: string;
+  userType: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const formSchema = z.object({
     password: z.string().min(5, {
       message: "Password must be at least 5 characters.",
@@ -58,19 +68,25 @@ export default function ChangePasswordForm({identifier, userType, open, setOpen}
     console.log("identifier", identifier);
     console.log("userType", userType);
     console.log("passwod chenaged", value);
-    const Promis=new Promise(async (resolve, reject) => {
-      const response = await axios.post("/api/auth/reset-password", 
-        { identifier: identifier, userType: userType, password: value.password }
-      ).catch((error) => {
-        reject({error: error.message});
-      }).then((res: any) => {
-        resolve(res.data.message || "Password changed successfully");
-        setOpen(false);
-        router.push("/institute-account-login");
-      }).finally(() => {
-        resolve(true);
-      })
-    })
+    const Promis = new Promise(async (resolve, reject) => {
+      const response = await axios
+        .post("/api/auth/reset-password", {
+          identifier: identifier,
+          userType: userType,
+          password: value.password,
+        })
+        .catch((error) => {
+          reject({ error: error.message });
+        })
+        .then((res: any) => {
+          resolve(res.data.message || "Password changed successfully");
+          setOpen(false);
+          router.push("institute-account-login");
+        })
+        .finally(() => {
+          resolve(true);
+        });
+    });
     toast.promise(Promis, {
       loading: "Changing password...",
       success: "Password changed successfully",
@@ -105,7 +121,8 @@ export default function ChangePasswordForm({identifier, userType, open, setOpen}
               Change Password
             </DialogTitle>
             <DialogDescription className="sm:text-center">
-              This action cannot be undone. To confirm, please enter the new password.
+              This action cannot be undone. To confirm, please enter the new
+              password.
             </DialogDescription>
           </DialogHeader>
         </div>

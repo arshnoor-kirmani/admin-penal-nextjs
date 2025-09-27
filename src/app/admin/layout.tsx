@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/app/globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Sidebar from "@/components/custom/admin/sidebar";
+import SessionProvider from "@/components/custom/SessionProvider";
 
 export const metadata: Metadata = {
   title: "Admin Panel | Dashboard",
@@ -14,12 +15,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SidebarProvider>
-      <Sidebar />
-      <div>
-        <SidebarTrigger className="absolute" />
-        {children}
-      </div>
-    </SidebarProvider>
+    <SessionProvider>
+      <SidebarProvider>
+        <Sidebar />
+        <div>
+          <SidebarTrigger className="absolute" />
+          {children}
+        </div>
+      </SidebarProvider>
+    </SessionProvider>
   );
 }

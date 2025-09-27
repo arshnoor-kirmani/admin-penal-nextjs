@@ -23,7 +23,7 @@ import axios from "axios";
 import { Database, LucideLoader } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDebounceCallback } from "usehooks-ts";
 import z, { email } from "zod";
@@ -36,16 +36,16 @@ export default function forgotPage({
 }: {
   forgetUserType: "institutes" | "student";
 }) {
-  const [formDisabled, setFormDisabled] = React.useState(false);
-  const [verifySuccess, setVerifySuccess] = React.useState(false);
-  const [inputDisabled, setInputDisabled] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
-  const [userId, setUserId] = React.useState("");
-  const [userEmail, setUserEmail] = React.useState<string>("");
+  const [formDisabled, setFormDisabled] = useState(false);
+  const [verifySuccess, setVerifySuccess] = useState(false);
+  const [inputDisabled, setInputDisabled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [userEmail, setUserEmail] = useState<string>("");
 
-  const [value, setValue] = React.useState("");
-  const [checkingEmail, setCheckingEmail] = React.useState(false);
-  const [submitDisabled, setSubmitDisabled] = React.useState(false);
+  const [value, setValue] = useState("");
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
   const route = useRouter();
   // =====================================================
   const debounced = useDebounceCallback(setValue, 700);
@@ -82,7 +82,7 @@ export default function forgotPage({
       const result = await axios
         .post("/api/auth/forgot-password", {
           email: value.Email,
-          Database_name: "institutes",
+          Database_name: forgetUserType,
         })
         .then(async (e) => {
           const res = await forgetInstiutePassword({ email: value.Email }).then(
@@ -109,7 +109,7 @@ export default function forgotPage({
   }
   // =================================================
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (form.getValues("Email") !== "") {
       if (value.length > 0) {
         setCheckingEmail(true);

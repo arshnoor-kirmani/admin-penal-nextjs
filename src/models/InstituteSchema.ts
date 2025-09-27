@@ -1,15 +1,15 @@
 import { User } from "./UserSchema";
-import mongoose, { Document, Model, Schema, model, models } from "mongoose";
+import { Document, Model, Schema, model, models } from "mongoose";
 
 export interface Course {
-  courses_type: String;
-  institute: String;
-  course_name: String;
-  total_students: Number;
-  base_fee: Number;
-  offer: Array<String>;
+  courses_type: string;
+  institute: string;
+  course_name: string;
+  total_students: number;
+  base_fee: number;
+  offer: Array<string>;
   syllabus: Object;
-  teacher: String;
+  teacher: string;
 }
 export interface rules {
   all: true;
@@ -28,21 +28,21 @@ export interface rules {
   result_permession: true;
 }
 export interface Institute extends Document {
-  username: String;
-  email: String;
-  password: String;
-  institute_name: String;
-  address?: String;
-  official_website?: String;
-  owner?: String;
+  username: string;
+  email: string;
+  password: string;
+  institute_name: string;
+  address?: string;
+  official_website?: string;
+  owner?: string;
   users?: Array<User>;
-  total_teachers?: Number;
-  total_students?: Number;
+  total_teachers?: number;
+  total_students?: number;
   courses?: Array<Course>;
   isVerify: boolean;
-  verifyCode?: Number;
+  verifyCode?: number;
   verifyExpiry?: Date;
-  forget_password_code?: Number;
+  forget_password_code?: number;
   forget_password_code_expriy?: Date;
   rules: rules;
 }
