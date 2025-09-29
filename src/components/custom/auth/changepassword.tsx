@@ -81,7 +81,7 @@ export default function ChangePasswordForm({
         .then((res: any) => {
           resolve(res.data.message || "Password changed successfully");
           setOpen(false);
-          router.push("institute-account-login");
+          router.push("institute-login");
         })
         .finally(() => {
           resolve(true);

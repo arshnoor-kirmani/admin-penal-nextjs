@@ -45,6 +45,7 @@ export interface Institute extends Document {
   forget_password_code?: number;
   forget_password_code_expriy?: Date;
   rules: rules;
+  institute_code: string;
 }
 
 const InstituteSchema = new Schema<Institute>({
@@ -83,6 +84,7 @@ const InstituteSchema = new Schema<Institute>({
       result_permession: true,
     },
   },
+  institute_code: { type: String, required: true, unique: true },
 });
 
 const InstituteModel =

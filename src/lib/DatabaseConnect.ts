@@ -11,7 +11,10 @@ export default async function dbConnect({
 }: {
   Database_name: string;
 }): Promise<void> {
-  if (connection.isConnected) {
+  if (
+    connection.isConnected &&
+    mongoose.connection.db?.databaseName === Database_name
+  ) {
     console.log("Already connnected to Database");
     return;
   }

@@ -1,28 +1,25 @@
+import dbConnect from "@/lib/DatabaseConnect";
+import mongoose, { Mongoose } from "mongoose";
 import nodemailer from "nodemailer";
 export async function GET() {
-  // Create a test account or replace with real credentials.
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_EMAIL || "",
-      pass: process.env.SMTP_PASSWORD || "",
-    },
-  });
+  // Connect to the first database
+  await dbConnect({ Database_name: "institutes" });
+  console.log("Connected to institutes:", mongoose.connection.db?.databaseName);
 
-  // Wrap in an async IIFE so we can use await.
-  (async () => {
-    const info = await transporter.sendMail({
-      from: `"Institute management" <${process.env.SMTP_EMAIL}>`, // sender address
-      to: "try.arshnoorkirmani@gmail.com",
-      subject: "Hello ✔",
-      text: "Hello world?", // plain‑text body
-      html: "<b>Hello world?</b>", // HTML body
-    });
+  // Disconnect from the first database
+  await mongoose.disconnect();
+  console.log("Disconnected from institutes");
 
-    console.log("Message sent:", info.messageId);
-  })();
+  // Connect to the second database
+  await dbConnect({ Database_name: "institutes" });
+  console.log(
+    "Connected to anotherDatabase:",
+    mongoose.connection.db?.databaseName
+  );
+
+  // Disconnect from the second database (optional)
+  await mongoose.disconnect();
+  console.log("Disconnected from anotherDatabase");
 
   return new Response("Hello, Next.js!");
 }

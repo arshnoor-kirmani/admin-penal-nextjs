@@ -1,8 +1,8 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface Student extends Document {
-  //   verify: { isVerify: boolean };
-  //   user_type: string;
+  verify: { isVerify: boolean; isActive: boolean };
+  user_type: string;
   student_id: string;
   student_name: string;
   password: string;
@@ -47,8 +47,13 @@ export interface Student extends Document {
 
 const StudentSchema: Schema<Student> = new mongoose.Schema({
   student_id: { type: String, required: true, unique: true },
-  student_name: { type: String, required: true, unique: true },
+  student_name: { type: String, required: true, default: "Student" },
   password: { type: String, required: true },
+  verify: {
+    isVerify: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+  },
+  user_type: { type: String, required: true, default: "student" },
 });
 
 export const StudentModel =

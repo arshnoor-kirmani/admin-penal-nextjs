@@ -1,12 +1,21 @@
 import dbConnect from "@/lib/DatabaseConnect";
 import { StudentModel } from "@/models/StudentsSchema";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 export async function POST(request: Request) {
   try {
-    const { student_id, student_name, password, institute_id } =
-      await request.json();
-    await dbConnect({ Database_name: institute_id });
+    const {
+      student_id,
+      student_name,
+      password,
+      institute_id: Database_name,
+    } = await request.json();
+    console.log(student_id, student_name, password, Database_name);
+    if (mongoose.connection.db?.databaseName !== String(Database_name)) {
+      await mongoose.connection.close();
+    }
+    await dbConnect({ Database_name: String(Database_name) });
     try {
       const existingStudent = await StudentModel.findOne({ student_id });
       if (existingStudent) {

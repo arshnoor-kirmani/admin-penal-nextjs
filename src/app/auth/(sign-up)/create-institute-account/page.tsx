@@ -377,7 +377,7 @@ export default function Page() {
                 >
                   Submit
                 </Button>
-                <Link href="institute-account-login">
+                <Link href="institute-login">
                   <Button
                     variant="secondary"
                     type="button"
@@ -402,7 +402,7 @@ export default function Page() {
         userEmail={userEmail}
         VerificationType="verify"
         setSuccess={setSuccess}
-        redirectTo={"institute-account-login"}
+        redirectTo={"institute-login"}
       />
     </div>
   );

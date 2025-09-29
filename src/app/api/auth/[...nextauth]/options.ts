@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import InstituteModel, { Institute } from "@/models/InstituteSchema";
 import dbConnect from "@/lib/DatabaseConnect";
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { StudentModel } from "@/models/StudentsSchema";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -59,6 +61,82 @@ export const authOptions: NextAuthOptions = {
         return institute;
       },
     }),
+    // =============================Student Login====================================
+    CredentialsProvider({
+      id: "student-login",
+      name: "Credentials",
+      credentials: {
+        institute_id: { label: "Institute ID", type: "text" },
+        student_id: { label: "Student ID", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials: any): Promise<any> {
+        console.log(credentials);
+        if (
+          !credentials ||
+          !credentials.institute_id ||
+          !credentials.student_id ||
+          !credentials.password
+        ) {
+          console.error(
+            "Please provide institute ID, student ID, and password."
+          );
+          throw new Error(
+            "Please provide institute ID, student ID, and password."
+          );
+        }
+        // Connect to the database
+        if (
+          mongoose.connection.db?.databaseName &&
+          mongoose.connection.db?.databaseName !==
+            String(credentials.institute_id)
+        ) {
+          mongoose.connection
+            .close()
+            .then(() => {
+              console.log("Previous connection closed");
+            })
+            .catch((err) => {
+              console.error("Error closing previous connection:", err);
+            });
+        }
+        await dbConnect({ Database_name: String(credentials.institute_id) });
+        // Find the user by email or username
+        const student = await StudentModel.findOne({
+          student_id: credentials.student_id,
+        });
+        console.log("institute finded", student);
+
+        if (!student) {
+          console.error("No Student found with the provided Student ID.");
+          // throw new Error("No institute found with the provided email.");
+          return NextResponse.json(
+            {
+              message: "No Student found with the provided ID.",
+              success: false,
+            },
+            { status: 201 }
+          );
+        }
+        // Compare the provided password with the hashed password in the database
+        const isValidPassword = await bcrypt.compare(
+          credentials.password,
+          student.password.toString()
+        );
+        console.log(
+          isValidPassword,
+          credentials.password,
+          student.password == student.password.toString()
+        );
+        if (!isValidPassword) {
+          console.error("Invalid password.");
+          throw new Error("Invalid password.");
+          return null;
+        }
+        console.log("User authenticated successfully:", student);
+        return student;
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
@@ -95,6 +173,6 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/institute-account-login",
+    signIn: "/institute-login",
   },
 };
