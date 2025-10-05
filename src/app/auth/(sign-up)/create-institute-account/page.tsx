@@ -1,10 +1,8 @@
 "use client";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,11 +25,10 @@ import React, { useEffect, useState } from "react";
 import { LucideEye, LucideEyeOff, LucideLoader } from "lucide-react";
 import Link from "next/link";
 import { useDebounceCallback } from "usehooks-ts";
-import axios, { all } from "axios";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 // import InstituteVerificationOtpEmailTemplate from "@/components/emails/newUserVerification";
 import { SendNewInstituteVerificationEmail } from "@/models/Email/SendingEmails";
-import { Label } from "@/components/ui/label";
 import OTP_Component from "@/components/custom/opt-input";
 // import { InputOTPForm } from "@/components/custom/opt-input";
 
@@ -60,12 +57,6 @@ const formSchema = z.object({
     message: "Institute name must be at least 2 characters.",
   }),
 });
-const myPromise = new Promise<{ name: string }>((resolve) => {
-  // setTimeout(() => {
-  resolve({ name: "My toast" });
-  // }, 5000);
-});
-// PromiseRejectionEvent(myPromise)
 
 export default function Page() {
   const [open, setOpen] = useState(false);
@@ -99,6 +90,7 @@ export default function Page() {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     setAllInputDisabled(true);
+    console.log(values);
     const myPromise = new Promise<void>((resolve) => {
       // Create institute account using backend AP  I
       try {
@@ -115,6 +107,7 @@ export default function Page() {
           )
           .then(async (response) => {
             // Handle success
+            console.log("==", response);
             const user = response.data.user;
             console.log("Create Instiute", user);
             if (response.data.success) {
@@ -153,7 +146,6 @@ export default function Page() {
                 },
               });
             }
-
             // sending verification email
             try {
             } catch (error) {
@@ -360,7 +352,7 @@ export default function Page() {
                       <FormDescription>
                         {" "}
                         <Link
-                          href="/forgot-password"
+                          href="institute-forgot-password"
                           className="text-muted-foreground w-full text-xs hover:underline"
                         >
                           Forgot Password?

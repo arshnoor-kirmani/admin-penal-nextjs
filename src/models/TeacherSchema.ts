@@ -1,13 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-export interface Student extends Document {
+export interface Teacher extends Document {
   verify: { isVerify: boolean; isActive: boolean };
   user_type: string;
-  institute_id: string;
-  student_id: string;
-  student_name: string;
-  profile_url: string;
+  teacher_id: string;
+  teacher_name: string;
   password: string;
+  institute_id: string;
   //   institute_info: {
   //     institute_name: string;
   //     branch: { name: string };
@@ -39,26 +38,26 @@ export interface Student extends Document {
   //     edit_teacher: boolean;
   //     delete_teacher: boolean;
   //     salary_management: boolean;
-  //     add_student: boolean;
-  //     edit_student: boolean;
-  //     delete_student: boolean;
+  //     add_teacher: boolean;
+  //     edit_teacher: boolean;
+  //     delete_teacher: boolean;
   //     fees_management: boolean;
   //     result_permession: boolean;
   //   };
 }
 
-const StudentSchema: Schema<Student> = new mongoose.Schema({
-  student_id: { type: String, required: true, unique: true },
-  student_name: { type: String, required: true, default: "Student" },
+const teacherSchema: Schema<Teacher> = new mongoose.Schema({
+  teacher_id: { type: String, required: true, unique: true },
+  teacher_name: { type: String, required: true, default: "teacher" },
   password: { type: String, required: true },
   institute_id: { type: String, required: true },
   verify: {
     isVerify: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
   },
-  user_type: { type: String, required: true, default: "student" },
+  user_type: { type: String, required: true, default: "teacher" },
 });
 
-export const StudentModel =
-  (mongoose.models.Student as mongoose.Model<Student>) ||
-  mongoose.model<Student>("Student", StudentSchema);
+export const TeacherModel =
+  (mongoose.models.teacher as mongoose.Model<Teacher>) ||
+  mongoose.model<Teacher>("teacher", teacherSchema);

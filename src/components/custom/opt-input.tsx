@@ -42,8 +42,6 @@ export default function OTP_Component({
   const router = useRouter();
 
   const [value, setValue] = useState("");
-  const [user_id, setUserId] = useState(userId || "");
-  const [user_email, setuserEmail] = useState(userEmail || "");
   const [resendDisabled, setResendDisabled] = useState<undefined | boolean>(
     undefined
   );
@@ -69,7 +67,7 @@ export default function OTP_Component({
       console.log("VerificationType", VerificationType);
       const Promis: Promise<{ message: string }> = new Promise(
         async (resolve, reject) => {
-          const res = await axios
+          await axios
             .post("/api/verify-otp", {
               otp: e,
               userId,
@@ -125,18 +123,12 @@ export default function OTP_Component({
       inputRef.current?.blur();
     }, 20);
   }
-  async function ResendEmail({
-    user_Email,
-    user_Id,
-  }: {
-    user_Email: string;
-    user_Id: string;
-  }) {
+  async function ResendEmail({ user_Email }: { user_Email: string }) {
     setResendDisabled(true);
     console.log("ResendEmail");
-    console.log("Resend Email -UserId", userId, userEmail);
-    if (!userId || !userEmail) return;
-    console.log("ResendEmail", userEmail, userId);
+    console.log("Resend Email -UserId", user_Email);
+    if (!userEmail) return;
+    console.log("ResendEmail", userEmail);
 
     const res = await SendNewInstituteVerificationEmail({ email: userEmail });
     if (!res.data.success) setResendDisabled(false);
@@ -235,9 +227,7 @@ export default function OTP_Component({
                 variant={"link"}
                 disabled={resendDisabled}
                 className="cursor-pointer"
-                onClick={() =>
-                  ResendEmail({ user_Email: user_email, user_Id: user_id })
-                }
+                onClick={() => ResendEmail({ user_Email: userEmail || "" })}
               >
                 Resend OTP
               </Button>

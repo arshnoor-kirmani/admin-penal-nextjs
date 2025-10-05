@@ -1,6 +1,5 @@
 import dbConnect from "@/lib/DatabaseConnect";
 import InstituteModel from "@/models/InstituteSchema";
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {

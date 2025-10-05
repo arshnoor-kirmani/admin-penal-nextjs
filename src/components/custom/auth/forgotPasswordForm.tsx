@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,25 +19,23 @@ import { Input } from "@/components/ui/input";
 import { forgetInstiutePassword } from "@/models/Email/SendingEmails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { Database, LucideLoader } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { LucideLoader } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDebounceCallback } from "usehooks-ts";
-import z, { email } from "zod";
+import z from "zod";
 import OTP_Component from "../opt-input";
 import ChangePasswordForm from "./changepassword";
 import { toast } from "sonner";
 
-export default function forgotPage({
+export default function ForgotPage({
   forgetUserType,
 }: {
   forgetUserType: "institutes" | "student";
 }) {
   const [formDisabled, setFormDisabled] = useState(false);
   const [verifySuccess, setVerifySuccess] = useState(false);
-  const [inputDisabled, setInputDisabled] = useState(false);
+  const [inputDisabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState<string>("");
@@ -46,7 +43,7 @@ export default function forgotPage({
   const [value, setValue] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [submitDisabled, setSubmitDisabled] = useState(false);
-  const route = useRouter();
+  // const route = useRouter();
   // =====================================================
   const debounced = useDebounceCallback(setValue, 700);
   // ====================================
@@ -58,7 +55,7 @@ export default function forgotPage({
       })
       .email({
         message: "Invalid email address.",
-      })
+      } as object) // Suppress deprecated warning, see zod docs
       .regex(new RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"), {
         message: "Invalid email format.",
       })
@@ -79,12 +76,12 @@ export default function forgotPage({
     setFormDisabled(true);
     setUserEmail(value.Email);
     const Promis = new Promise(async (resolve, reject) => {
-      const result = await axios
+      await axios
         .post("/api/auth/forgot-password", {
           email: value.Email,
           Database_name: forgetUserType,
         })
-        .then(async (e) => {
+        .then(async () => {
           const res = await forgetInstiutePassword({ email: value.Email }).then(
             (res) => {
               setUserId(res.userId);
@@ -160,7 +157,7 @@ export default function forgotPage({
         error: (error) => error.error,
       });
     }
-  }, [value]);
+  }, [value, form]);
   return (
     <div className="container flex items-center justify-center min-h-screen">
       <div className="w-[400px] h-[50%] overflow-hidden">

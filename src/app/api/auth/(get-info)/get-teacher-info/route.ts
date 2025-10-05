@@ -1,37 +1,31 @@
 import dbConnect from "@/lib/DatabaseConnect";
-import InstituteModel from "@/models/InstituteSchema";
+import { TeacherModel } from "@/models/TeacherSchema";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { identifier } = await request.json();
+    const { identifier: teacher_id, institute_id: Database_name } =
+      await request.json();
     const _mongoose = await mongoose;
 
-    console.log(
-      "==========> Current DB, Identifier : ",
-      _mongoose.connection.db?.databaseName,
-      "institutes"
-    );
     if (
       _mongoose.connection.db?.databaseName &&
-      _mongoose.connection.db?.databaseName !== String("institutes")
+      _mongoose.connection.db?.databaseName !== String(Database_name)
     ) {
       await _mongoose.connection.close().then(() => {
         console.log("Previous connection closed");
       });
     }
-    await dbConnect({ Database_name: "institutes" });
+    await dbConnect({ Database_name });
 
-    console.log("Get Institute", identifier);
+    console.log("Get Teacher =>>>>", teacher_id, Database_name);
     try {
-      const user = await InstituteModel.findOne({
-        $or: [{ email: identifier }, { institute_code: identifier }],
-      });
-      console.log("Get Institute", user);
-      if (user) {
+      const Teacher = await TeacherModel.findOne({ teacher_id });
+      console.log("Get Teacher", Teacher);
+      if (Teacher) {
         return NextResponse.json(
-          { message: "User Finded", success: true, user },
+          { message: "User Finded", success: true, user: Teacher },
           {
             status: 200,
           }
@@ -46,13 +40,16 @@ export async function POST(request: Request) {
       }
     } catch (error) {
       return NextResponse.json(
-        { message: "Email not registered", success: false },
+        { message: "Email not registered", success: false, error },
         {
           status: 200,
         }
       );
     }
   } catch (error) {
-    return new Response("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error", error },
+      { status: 500 }
+    );
   }
 }

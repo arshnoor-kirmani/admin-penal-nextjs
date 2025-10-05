@@ -1,10 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
-import instituteSlice from "@/lib/store/ReduxSlices/InstituteSlice";
+import InstituteSlice from "@/lib/store/ReduxSlices/InstituteSlice";
+import StudentSlice from "@/lib/store/ReduxSlices/StudentSlice";
+import TeacherSlice from "@/lib/store/ReduxSlices/TeacherSlice";
 
 export const store = configureStore({
   reducer: {
     // Add your reducers here
-    institute: instituteSlice,
+    institute: InstituteSlice,
+    student: StudentSlice,
+    teacher: TeacherSlice,
   },
 });
 

@@ -1,32 +1,27 @@
-import { Course, rules } from "@/models/InstituteSchema";
+// import { Course, rules } from "@/models/InstituteSchema";
+// import { Student } from "@/models/StudentsSchema";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
-export interface InstituteInfo {
+export interface StudentInfo {
+  logo?: string;
   institute_name: string;
-  logo: string;
   profile_url: string;
   institute_id: string;
   username: string;
   identifier: string;
   user_type: string;
-  users: rules[];
-  courses: Course[];
   rules: { [key: string]: boolean | undefined };
-  institute_short_name: string;
 }
 
 // Define the initial state using that type
-const initialState: InstituteInfo = {
-  logo: "",
-  institute_id: "",
-  username: "",
-  user_type: "institute",
+const initialState: StudentInfo = {
   profile_url: "",
+  institute_id: "",
   identifier: "",
+  username: "",
+  user_type: "student",
   institute_name: "",
-  users: [],
-  courses: [],
   rules: {
     all_permissions: undefined,
     profile_edit: undefined,
@@ -48,20 +43,19 @@ const initialState: InstituteInfo = {
     show_student: false,
     show_teacher: undefined,
   },
-  institute_short_name: "",
 };
 
-export const instituteSlice = createSlice({
-  name: "institute",
+export const StudentSlice = createSlice({
+  name: "student",
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
-    setInstituteInfo: (state, action: PayloadAction<InstituteInfo>) => {
+    setStudentInfo: (state, action: PayloadAction<StudentInfo>) => {
       console.log("Action", action.payload);
       return { ...state, ...action.payload };
     },
   },
 });
 
-export const { setInstituteInfo } = instituteSlice.actions;
-export default instituteSlice.reducer;
+export const { setStudentInfo } = StudentSlice.actions;
+export default StudentSlice.reducer;

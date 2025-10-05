@@ -30,20 +30,15 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 const formSchema = z.object({
-  Email: z
-    .string()
+  institute_code: z
+    .string({ message: "Institute Code is required." })
     .min(2, {
-      message: "Email must be at least 2 characters.",
+      message: "Institute Code must be at least 2 characters.",
     })
-    .email({
-      message: "Invalid email address.",
-    })
-    .regex(new RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"), {
-      message: "Invalid email format.",
-    })
-    .lowercase({
-      message: "Email must be in lowercase.",
-    }),
+    .optional(),
+  student_id: z.string().min(8, {
+    message: "Student ID must be at least 8 characters.",
+  }),
   password: z.string().min(5, {
     message: "Password must be at least 5 characters.",
   }),
@@ -58,17 +53,23 @@ export default function SignInForm({
   const [formDisabled, setFormDisabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [value, setValue] = useState("");
-  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [GetInstituteName, setGetInstituteName] = useState("");
+  const [GetInstituteId, setGetInstituteId] = useState("");
+  const [institute_code, setInstituteId] = useState("");
+  const [checkingStudentId, setCheckingStudentId] = useState(false);
+  const [checkingInstituteCode, setCheckingInstituteCode] = useState(false);
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const route = useRouter();
   // =====================================================
-  const debounced = useDebounceCallback(setValue, 700);
+  const debouncedStudentId = useDebounceCallback(setValue, 700);
+  const debouncedInstituteCode = useDebounceCallback(setInstituteId, 700);
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      Email: "",
+      institute_code: "",
+      student_id: "",
       password: "",
     },
   });
@@ -80,8 +81,9 @@ export default function SignInForm({
     // SignIntype ===== Next Auth credetials id
     const result = await signIn(SignInType, {
       redirect: false,
-      email: values.Email,
+      student_id: values.student_id,
       password: values.password,
+      institute_id: GetInstituteId,
     })
       .then((res) => {
         console.log("res", res);
@@ -93,7 +95,7 @@ export default function SignInForm({
           });
         } else {
           toast.success("Login Sucessfully !");
-          route.push("/admin/dashboard");
+          route.push("/student/dashboard");
         }
       })
       .finally(() => setFormDisabled(false));
@@ -102,31 +104,36 @@ export default function SignInForm({
 
   // =====================================================
   useEffect(() => {
-    if (form.getValues("Email") !== "") {
+    if (form.getValues("student_id") !== "") {
       if (value.length > 0) {
-        setCheckingEmail(true);
+        setCheckingStudentId(true);
       }
       form
-        .trigger("Email")
+        .trigger("student_id")
         .then(async (isValid) => {
           if (isValid) {
-            setCheckingEmail(true);
-            const checkEmail = await axios.get(
-              "/api/auth/check-register-email",
-              {
-                params: { email: value },
-              }
-            );
-            console.log(checkEmail.data);
-            if (checkEmail.data.registered === false) {
-              form.setError("Email", {
-                type: "manual",
-                message: `Email is registered but not verified`,
+            setCheckingStudentId(true);
+            const checkStudentId = await axios
+              .get("/api/auth/check-register-email/student", {
+                params: {
+                  student_id: value,
+                  institute_id: GetInstituteId,
+                },
+              })
+              .catch((error) => {
+                if (error.response) {
+                  form.setError("student_id", {
+                    type: "manual",
+                    message:
+                      "Student ID and Institute Code is not correct. Please try again.",
+                  });
+                }
               });
-            } else if (checkEmail.data.registered === undefined) {
-              form.setError("Email", {
+            console.log(checkStudentId?.data);
+            if (!checkStudentId?.data.registered) {
+              form.setError("student_id", {
                 type: "manual",
-                message: "No account found with this email address",
+                message: checkStudentId?.data.message,
               });
             }
             setSubmitDisabled(false);
@@ -134,10 +141,55 @@ export default function SignInForm({
           }
         })
         .finally(() => {
-          setCheckingEmail(false);
+          setCheckingStudentId(false);
         });
     }
-  }, [value]);
+  }, [value, GetInstituteId, form]);
+  useEffect(() => {
+    if (form.getValues("institute_code") !== "") {
+      if (institute_code.length > 0) {
+        setCheckingInstituteCode(true);
+      }
+      form
+        .trigger("institute_code")
+        .then(async (isValid) => {
+          if (isValid) {
+            console.log("valid", isValid);
+            try {
+              setGetInstituteId("");
+              setGetInstituteName("");
+              setCheckingInstituteCode(true);
+              const checkInstituteCode = await axios.post(
+                "/api/auth/get-institute-info",
+                {
+                  identifier: institute_code,
+                }
+              );
+              if (checkInstituteCode.data.success === false) {
+                setGetInstituteName("");
+                setGetInstituteId("");
+                form.setError("institute_code", {
+                  type: "manual",
+                  message: "No Institute found with this Institute Code",
+                });
+              } else {
+                setGetInstituteName(
+                  checkInstituteCode.data?.user.institute_name
+                );
+                setGetInstituteId(checkInstituteCode.data?.user._id);
+              }
+              setSubmitDisabled(false);
+              return;
+            } catch (err) {
+              console.log("Network Error", err);
+            }
+          }
+        })
+        .finally(() => {
+          setCheckingInstituteCode(false);
+        });
+    }
+  }, [institute_code, form]);
   // =====================================================
   return (
     <div className="container flex items-center justify-center min-h-screen">
@@ -150,6 +202,8 @@ export default function SignInForm({
                 ? "Institute Account"
                 : SignInType === "student-login"
                 ? "Student Account"
+                : SignInType === "teacher-login"
+                ? "Teacher Account"
                 : ""}
             </CardTitle>
             <CardDescription className="text-xs">
@@ -158,6 +212,8 @@ export default function SignInForm({
                 ? "Institute Account"
                 : SignInType === "student-login"
                 ? "Student Account"
+                : SignInType === "teacher-login"
+                ? "Teacher Account"
                 : ""}
             </CardDescription>
           </CardHeader>
@@ -167,36 +223,81 @@ export default function SignInForm({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-3 "
               >
-                {/* =============================Email Input========================== */}
+                {/* =============================Institute Code Input========================== */}
                 <FormField
                   control={form.control}
-                  name="Email"
+                  name="institute_code"
                   render={({ field }) => (
                     <FormItem className="relative">
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Institute Code</FormLabel>
                       <FormControl>
                         <Input
                           className="placeholder:text-xs"
                           type="text"
-                          placeholder="you@example.com"
+                          placeholder="ABC0000"
                           disabled={formDisabled}
                           {...field}
                           onChange={(e) => {
                             field.onChange(e.target.value);
-                            debounced(e.target.value);
+                            debouncedInstituteCode(e.target.value);
+                            setGetInstituteName("");
                           }}
                           // value={value}
                         />
                       </FormControl>
-                      {checkingEmail && (
+                      {checkingInstituteCode && (
+                        <LucideLoader
+                          size={18}
+                          className="animate-spin absolute right-3 top-3/6 transform -translate-y-1/5"
+                        />
+                      )}
+                      <FormDescription className="text-xs text-muted-foreground">
+                        {!!GetInstituteName && (
+                          <span>
+                            Institute Name:{" "}
+                            <span className="font-semibold text-primary">
+                              {GetInstituteName}
+                            </span>
+                          </span>
+                        )}
+                      </FormDescription>
+                      {!!GetInstituteName && (
+                        <FormMessage className="text-xs" />
+                      )}
+                    </FormItem>
+                  )}
+                />
+
+                {/* =============================Email Input========================== */}
+                <FormField
+                  control={form.control}
+                  name="student_id"
+                  render={({ field }) => (
+                    <FormItem className="relative">
+                      <FormLabel>Student ID</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="placeholder:text-xs"
+                          type="text"
+                          placeholder="XXXXXXXX"
+                          disabled={
+                            formDisabled ? true : GetInstituteId ? false : true
+                          }
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            debouncedStudentId(e.target.value);
+                          }}
+                          // value={value}
+                        />
+                      </FormControl>
+                      {checkingStudentId && (
                         <LucideLoader
                           size={18}
                           className="animate-spin absolute right-3 top-3/5 transform -translate-y-1/5"
                         />
                       )}
-                      {/* <FormDescription>
-                        Enter Institute owner email
-                      </FormDescription> */}
+
                       <FormMessage className="text-xs" />
                     </FormItem>
                   )}
@@ -220,7 +321,7 @@ export default function SignInForm({
                       </FormControl>
                       {!showPassword ? (
                         <LucideEyeOff
-                          className="absolute right-3 top-2/5 transform -translate-y-1/5 cursor-pointer"
+                          className="absolute right-3 top-3/5 transform -translate-y-1/5 cursor-pointer"
                           size={17}
                           onClick={() => {
                             setShowPassword((prev) => !prev);
@@ -228,7 +329,7 @@ export default function SignInForm({
                         />
                       ) : (
                         <LucideEye
-                          className="absolute right-3 top-2/5 transform -translate-y-1/5 cursor-pointer"
+                          className="absolute right-3 top-3/5 transform -translate-y-1/5 cursor-pointer"
                           size={17}
                           onClick={() => {
                             setShowPassword((prev) => !prev);
@@ -236,15 +337,6 @@ export default function SignInForm({
                         />
                       )}
 
-                      <FormDescription>
-                        {" "}
-                        <Link
-                          href="institute-forgot-password"
-                          className="text-muted-foreground w-full text-xs hover:underline"
-                        >
-                          Forgot Password?
-                        </Link>{" "}
-                      </FormDescription>
                       <FormMessage className="text-xs" />
                     </FormItem>
                   )}
@@ -252,7 +344,13 @@ export default function SignInForm({
                 <Button
                   type="submit"
                   className="w-full p-5 cursor-pointer"
-                  disabled={submitDisabled || checkingEmail || formDisabled}
+                  disabled={
+                    submitDisabled || checkingStudentId || formDisabled
+                      ? true
+                      : GetInstituteId
+                      ? false
+                      : true
+                  }
                 >
                   Submit
                 </Button>

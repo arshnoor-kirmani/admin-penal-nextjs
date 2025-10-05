@@ -8,30 +8,40 @@ export interface Course {
   total_students: number;
   base_fee: number;
   offer: Array<string>;
-  syllabus: Object;
+  syllabus: object;
   teacher: string;
 }
 export interface rules {
-  all: true;
-  profile_edit: true;
-  send_message: true;
-  inbox_message: true;
-  website_setting: true;
-  add_teacher: true;
-  edit_teacher: true;
-  delete_teacher: true;
-  salary_management: true;
-  add_student: true;
-  edit_student: true;
-  delete_student: true;
-  fees_management: true;
-  result_permession: true;
+  all: boolean;
+  profile_edit: boolean;
+  send_message: boolean;
+  inbox_message: boolean;
+  website_setting: boolean;
+  add_teacher: boolean;
+  edit_teacher: boolean;
+  delete_teacher: boolean;
+  salary_management: boolean;
+  add_student: boolean;
+  edit_student: boolean;
+  delete_student: boolean;
+  fees_management: boolean;
+  result_permession: boolean;
+  dashboard: boolean;
+  settings: boolean;
+  manage_users: boolean;
+  add_user: boolean;
+  show_student: boolean;
+  attendance: boolean;
+  show_teacher: boolean;
 }
 export interface Institute extends Document {
+  _id: unknown;
+  _v: number;
   username: string;
   email: string;
   password: string;
   institute_name: string;
+  user_type: string;
   address?: string;
   official_website?: string;
   owner?: string;
@@ -53,6 +63,7 @@ const InstituteSchema = new Schema<Institute>({
   email: { type: String, required: true },
   password: { type: String, required: true },
   institute_name: { type: String, required: true },
+  user_type: { type: String, required: true, default: "admin" },
   address: { type: String },
   official_website: { type: String },
   owner: { type: String },

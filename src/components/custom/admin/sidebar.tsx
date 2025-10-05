@@ -1,19 +1,21 @@
 "use client";
 import {
   BoltIcon,
-  Book,
   BookOpenIcon,
-  Inbox,
+  InboxIcon,
   Layers2Icon,
-  LogOut,
-  LucideHome,
-  Receipt,
-  Settings,
-  Sheet,
-  User2,
-  UserCircle,
-  UserPlus,
+  UserCircleIcon,
   UserPlus2Icon,
+  Settings,
+  Inbox,
+  User2,
+  LucideHome,
+  UserCircle,
+  Receipt,
+  Sheet,
+  Book,
+  UserPlus,
+  LogIn,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -41,19 +43,33 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import LogoutButton from "@/components/custom/logout-button";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/hooks/custom/redux-hooks";
-import { setInstituteInfo } from "@/lib/store/ReduxSlices/InstituteSlice";
+import {
+  InstituteInfo,
+  setInstituteInfo,
+} from "@/lib/store/ReduxSlices/InstituteSlice";
 import { toast } from "sonner";
+import {
+  setStudentInfo,
+  StudentInfo,
+} from "@/lib/store/ReduxSlices/StudentSlice";
+import {
+  setTeacherInfo,
+  TeacherInfo,
+} from "@/lib/store/ReduxSlices/TeacherSlice";
+import { ScrollArea } from "@/components/ui/scroll-area";
 const userNavigations: {
   label: string;
-  navs_item: { id: string; title: string; url: string; icon: any }[];
+  navs_item: {
+    id: string;
+    title: string;
+    url: string;
+    icon: React.ElementType;
+  }[];
 }[] = [
   {
     label: "User",
@@ -156,61 +172,129 @@ const userNavigations: {
     ],
   },
 ];
-export default function sidebar() {
-  const { data: session, status } = useSession({ required: true });
-
-  const instituteInfo = useAppSelector((state) => state.institute);
+export default function Sidebar_() {
+  const { data: session } = useSession({ required: true });
+  // TODO::::
   const dispatch = useAppDispatch();
-  // console.log("useAppSelector", instituteInfo);
-  // const [instituteInfo, setInstituteInfo] = useState<{
-  //   institute_name: string;
-  //   logo: string;
-  //   institute_id: string;
-  //   username: string;
-  //   email: string;
-  //   users: any[];
-  //   courses: any[];
-  //   rules: { [key: string]: boolean };
-  //   institute_short_name: string;
-  // }>({
-  //   logo: "",
-  //   institute_id: "",
-  //   username: "",
-  //   email: "",
-  //   institute_name: "",
-  //   users: [],
-  //   courses: [],
-  //   rules: {},
-  //   institute_short_name: "",
-  // });
   const [fetchingInfo, setFetchingInfo] = useState(true);
+  const [userInformation, setUserInformation] = useState<
+    InstituteInfo | StudentInfo | TeacherInfo
+  >({
+    logo: "",
+    courses: [],
+    institute_id: "",
+    username: "",
+    identifier: "",
+    profile_url: "",
+    user_type: "",
+    institute_name: "",
+    users: [],
+    rules: {
+      all_permissions: undefined,
+    },
+    institute_short_name: "",
+  });
+  const instituteInfo = useAppSelector((state) => state.institute);
+  const studentInfo = useAppSelector((state) => state.student);
+  const teacherInfo = useAppSelector((state) => state.teacher);
   // ======================================================
   // ======================================================
-  const fetchInstituteInfo = async () => {
+  const fetchInstituteInfo = async (
+    identifier: string,
+    institute_id: string,
+    user_type: string
+  ) => {
+    console.log("Checking.....", identifier);
     setFetchingInfo(true);
     try {
+      const URL =
+        user_type === "institute"
+          ? "/api/auth/get-institute-info"
+          : user_type === "student"
+          ? "/api/auth/get-student-info"
+          : user_type === "teacher"
+          ? "/api/auth/get-teacher-info"
+          : "";
+      console.log("Fechgin URL = ", URL, identifier, institute_id);
       await axios
-        .post("/api/auth/get-institute-info", {
-          identifier: session?.user?.email,
+        .post(URL, {
+          identifier,
+          institute_id,
         })
         .then((res) => {
           console.log("Institute Info Response:", res.data);
           // Set the institute info in Redux store
-          dispatch(
-            setInstituteInfo({
-              logo: res.data.user.logo || "https://github.com/shadcn.png",
-              institute_name: res.data.user.institute_name,
-              institute_id: res.data.user._id,
-              username: res.data.user.username,
-              email: res.data.user.email,
-              users: res.data.user.users,
-              courses: res.data.user.courses,
-              rules: res.data.user.rules,
-              institute_short_name: res.data.user.institute_short_name,
-            })
-          );
+          if (res.data && res.data.success && res.data.user) {
+            const user = res.data.user;
+            console.log("Feched User", user);
+            let data;
+            // Set Institute information in userInformatio Variable
+            if (user.user_type === "institute") {
+              data = dispatch(
+                setInstituteInfo({
+                  logo: user.logo || "https://github.com/shadcn.png",
+                  profile_url:
+                    user.profile_url || "https://github.com/shadcn.png",
+                  institute_name: user.institute_name || "Institute Name",
+                  institute_id: user._id,
+                  username: user.username || "Username",
+                  identifier: user.email || "Email",
+                  users: user.users || [],
+                  courses: user.courses || [],
+                  rules: user.rules || "",
+                  institute_short_name:
+                    user.institute_short_name || "Institute Short Name",
+                  user_type: user.user_type || "institute",
+                })
+              );
+            } else if (user.user_type === "student") {
+              console.log("Student user", user);
+              data = dispatch(
+                setStudentInfo({
+                  username: user.student_name || "Username",
+                  institute_id: user.institute_id || "",
+                  institute_name: user.institute_name || "Institute Name",
+                  profile_url:
+                    user.profile_url || "https://github.com/shadcn.png",
+                  rules: user.rules || "",
+                  identifier: user.student_id || "Student ID",
+                  user_type: user.user_type || "student",
+                })
+              );
+            } else if (user.user_type === "teacher") {
+              console.log("Teacher user", user);
+              data = dispatch(
+                setTeacherInfo({
+                  username: user.teacher_name || "Username",
+                  institute_id: user.institute_id || "",
+                  institute_name: user.institute_name || "Institute Name",
+                  profile_url:
+                    user.profile_url || "https://github.com/shadcn.png",
+                  rules: user.rules || "",
+                  identifier: user.teacher_id || "Teacher ID",
+                  user_type: user.user_type || "teacher",
+                })
+              );
+            }
+            if (data === undefined) {
+              toast.error("Somthing wrong.....");
+            }
+            setUserInformation({
+              ...data?.payload,
+            } as InstituteInfo & StudentInfo & TeacherInfo);
+          } else {
+            toast.error(
+              res.data?.message ||
+                "Failed to load institute info. Please try again."
+            );
+          }
 
           setFetchingInfo(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching institute info:", err);
+          setFetchingInfo(false);
+          toast.error("Something went wrong.....");
         });
     } catch (error) {
       console.error("Error fetching institute info:", error);
@@ -220,26 +304,59 @@ export default function sidebar() {
   // ======================================================
   useEffect(() => {
     if (!session) return;
-    console.log(
-      session.user?.email,
-      session.user?.email === instituteInfo.email,
-      instituteInfo.email
-    );
-    if (session.user?.email === instituteInfo.email) return;
-    if (!!instituteInfo.email) {
+    console.log("session", session);
+    if (session?.identifier === userInformation.identifier) return;
+    if (!!userInformation.identifier) {
       return;
     }
     const Promis = new Promise(async (resolve) => {
-      await fetchInstituteInfo().then((result) => {
-        resolve(result);
-      });
+      const identifier = session.identifier;
+      const user_type = session.user_type;
+      const intitute_id = session.institute_id || "";
+      if (!identifier || !user_type || !intitute_id) {
+        toast.error("Invalid session data. Please log in again.");
+        return;
+      }
+      if (userInformation.identifier === identifier) return;
+      if (
+        user_type === "institute" &&
+        instituteInfo.identifier === identifier
+      ) {
+        setUserInformation(instituteInfo);
+        setFetchingInfo(false);
+        return;
+      } else if (
+        user_type === "student" &&
+        studentInfo.identifier === identifier
+      ) {
+        setUserInformation(studentInfo);
+        setFetchingInfo(false);
+        return;
+      } else if (
+        user_type === "teacher" &&
+        teacherInfo.identifier === identifier
+      ) {
+        setUserInformation(teacherInfo);
+        setFetchingInfo(false);
+        return;
+      }
+      await fetchInstituteInfo(identifier, intitute_id, user_type).then(
+        (result) => {
+          resolve(result);
+        },
+        (error) => {
+          console.error("Error in fetchInstituteInfo:", error);
+          toast.error("Failed to fetch institute info.");
+          resolve(null);
+        }
+      );
     });
     toast.promise(Promis, {
       loading: "Loading institute info...",
       success: "Institute info loaded",
       error: "Error loading institute info",
     });
-  }, [session]);
+  }, [session, instituteInfo, studentInfo, teacherInfo]);
   if (fetchingInfo) {
     return (
       <Sidebar side="left" variant="floating" id="sidebar-skeleton">
@@ -286,13 +403,7 @@ export default function sidebar() {
             <SidebarMenuItem className="flex  gap-2 justify-between">
               <Skeleton className="size-10 rounded-full" />
 
-              <Button
-                variant="destructive"
-                className="my-auto gap-2 justify-evenly flex items-center"
-              >
-                Logout
-                <LogOut />
-              </Button>
+              <LogoutButton />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
@@ -305,47 +416,69 @@ export default function sidebar() {
         {" "}
         <div className="size-full flex justify-center items-center flex-col gap-2">
           <Avatar className="size-14">
-            <AvatarImage src={instituteInfo.logo} />
+            <AvatarImage
+              src={
+                userInformation.user_type === "institute"
+                  ? userInformation.logo
+                  : userInformation.profile_url
+              }
+            />
             <AvatarFallback>
               <Skeleton className="size-full rounded-full" />
             </AvatarFallback>
           </Avatar>
 
-          <h1>{instituteInfo.username}</h1>
+          <h1>{userInformation.username}</h1>
         </div>
       </SidebarHeader>
       <SidebarContent className="">
         <ScrollArea className="h-full px-1 w-full rounded-md">
-          {userNavigations.map((item) => (
-            <SidebarGroup key={item.label}>
-              <SidebarGroupLabel className="text-sm h-6 ">
-                {item.label}
-              </SidebarGroupLabel>
-              <SidebarMenuSub>
-                {item.navs_item.map((navItem) => (
-                  <SidebarMenuSubItem key={navItem.title}>
-                    <SidebarMenuButton
-                      asChild
-                      aria-disabled={
-                        instituteInfo.rules.all_permissions
-                          ? false
-                          : instituteInfo.rules[navItem.id]
-                          ? false
-                          : navItem.id === "dashboard"
-                          ? false
-                          : true
-                      }
-                    >
-                      <Link href={navItem.url}>
-                        <navItem.icon />
-                        <span>{navItem.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuSubItem>
-                ))}
-              </SidebarMenuSub>
-            </SidebarGroup>
-          ))}
+          {userNavigations.map((item) => {
+            if (!item) return;
+            const visibelNav = item.navs_item.filter(
+              (navItem) =>
+                userInformation.rules.all_permissions ||
+                userInformation.rules[navItem.id] ||
+                navItem.id === "dashboard" ||
+                userInformation.user_type === "institute" ||
+                userInformation.user_type === "admin" ||
+                userInformation.user_type === "user"
+            );
+            console.log("Visible Nav", visibelNav);
+            console.log("User Information", userInformation);
+            return (
+              visibelNav.length > 0 && (
+                <SidebarGroup key={item.label}>
+                  <SidebarGroupLabel className="text-sm h-6 ">
+                    {item.label}
+                  </SidebarGroupLabel>
+                  <SidebarMenuSub>
+                    {visibelNav.map((navItem) => (
+                      <SidebarMenuSubItem key={navItem.title}>
+                        <SidebarMenuButton
+                          asChild
+                          aria-disabled={
+                            userInformation.rules.all_permissions
+                              ? false
+                              : userInformation.rules[navItem.id]
+                              ? !userInformation.rules[navItem.id]
+                              : navItem.id === "dashboard"
+                              ? false
+                              : true
+                          }
+                        >
+                          <Link href={navItem.url}>
+                            <navItem.icon />
+                            <span>{navItem.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </SidebarGroup>
+              )
+            );
+          })}
         </ScrollArea>
       </SidebarContent>
       {/*============================== Footer===================================== */}
@@ -357,7 +490,7 @@ export default function sidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="size-fit relative">
                   <Avatar className="size-8">
-                    <AvatarImage src={instituteInfo.logo} />
+                    <AvatarImage src={userInformation.profile_url} />
                     <AvatarFallback>
                       <Skeleton className="size-full rounded-full" />
                     </AvatarFallback>
@@ -372,44 +505,143 @@ export default function sidebar() {
               >
                 <DropdownMenuLabel className="flex min-w-0 flex-col">
                   <span className="text-foreground truncate text-sm font-medium text-center">
-                    {instituteInfo.username}
+                    {userInformation.username}
                   </span>
                   <span className="text-muted-foreground truncate text-xs font-normal">
-                    {instituteInfo.email}
+                    {userInformation?.identifier}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <BoltIcon
-                      size={16}
-                      className="opacity-60"
-                      aria-hidden="true"
-                    />
-                    <span>Option 1</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Layers2Icon
-                      size={16}
-                      className="opacity-60"
-                      aria-hidden="true"
-                    />
+                  {userInformation.user_type === "institute" && (
+                    <>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/account-center">
+                          <BoltIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Account Center</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/deleted-users">
+                          <UserCircleIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span className="text-xs">
+                            Deleted Students, Teachers
+                          </span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/login-activity">
+                          <InboxIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Login Activity</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {userInformation.user_type === "student" && (
+                    <>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/account-center">
+                          <BoltIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Account Center</span>
+                        </Link>
+                      </DropdownMenuItem>
 
-                    <span>Option 2</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BookOpenIcon
-                      size={16}
-                      className="opacity-60"
-                      aria-hidden="true"
-                    />
-                    <span>Option 3</span>
-                  </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/student-guide">
+                          <BookOpenIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Student Guide</span>
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/login-activity">
+                          <InboxIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Login Activity</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {userInformation.user_type === "teacher" && (
+                    <>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/account-center">
+                          <BoltIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Account Center</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/my-classes">
+                          <Layers2Icon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>My Classes</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/teaching-guides">
+                          <BookOpenIcon
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Teaching Guides</span>
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/login-activity">
+                          <LogIn
+                            size={16}
+                            className="opacity-60"
+                            aria-hidden="true"
+                          />
+                          <span>Login Activity</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuGroup>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogoutButton />
+                <DropdownMenuItem
+                  className="cursor-pointer flex items-center gap-2"
+                  onClick={() => {}}
+                >
+                  {/* The actual logout button is hidden, just triggers on click */}
+                  <div className="ml-auto flex justify-center items-center gap-4">
+                    <span>Logout</span>
+                    <LogoutButton />
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -420,49 +652,3 @@ export default function sidebar() {
     </Sidebar>
   );
 }
-/**setFetchingInfo(true);
-    const fetchInstituteInfo = async () => {
-      try {
-        const response = await axios
-          .post("/api/auth/get-institute-info", {
-            identifier: session?.user?.email,
-          })
-          .then((res) => {
-            console.log("Institute Info Response:", res.data);
-            if (res.data.success) {
-              // setInstituteInfo({
-              //   institute_name: res.data.user.institute_name,
-              //   logo: res.data.user.logo,
-              //   institute_id: res.data.user._id,
-              //   username: res.data.user.username,
-              //   email: res.data.user.email,
-              //   users: res.data.user.users,
-              //   courses: res.data.user.courses,
-              //   rules: res.data.user.rules,
-              //   institute_short_name: res.data.user.institute_short_name,
-              // });
-              dispatch(
-                setInstituteInfo({
-                  institute_name: res.data.user.institute_name,
-                  logo: res.data.user.logo,
-                  institute_id: res.data.user._id,
-                  username: res.data.user.username,
-                  email: res.data.user.email,
-                  users: res.data.user.users,
-                  courses: res.data.user.courses,
-                  rules: res.data.user.rules,
-                  institute_short_name: res.data.user.institute_short_name,
-                })
-              );
-              setFetchingInfo(false);
-            }
-          });
-      } catch (error) {
-        console.error("Error fetching institute info:", error);
-      }
-    };
-    if (!session) {
-      // fetchInstituteInfo();
-    } else {
-      toast.info("Loading Session........");
-    }**/

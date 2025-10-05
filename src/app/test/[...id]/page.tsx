@@ -1,5 +1,4 @@
 "use client"; // This is a client component
-import { useAppSelector } from "@/hooks/custom/redux-hooks";
 import bcrypt from "bcryptjs";
 
 export default async function Page({

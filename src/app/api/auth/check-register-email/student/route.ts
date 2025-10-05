@@ -73,11 +73,14 @@ export async function GET(req: Request) {
       );
     } catch (error) {
       return NextResponse.json(
-        { message: "Error in finding account" },
+        { message: "Error in finding account", error },
         { status: 400 }
       );
     }
   } catch (error) {
-    return new Response("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error", error },
+      { status: 500 }
+    );
   }
 }

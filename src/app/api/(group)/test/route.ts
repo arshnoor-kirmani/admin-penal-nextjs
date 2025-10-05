@@ -1,6 +1,5 @@
 import dbConnect from "@/lib/DatabaseConnect";
-import mongoose, { Mongoose } from "mongoose";
-import nodemailer from "nodemailer";
+import mongoose from "mongoose";
 export async function GET() {
   // Connect to the first database
   await dbConnect({ Database_name: "institutes" });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { CircleAlertIcon, SaveIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -30,8 +28,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-const PROJECT_NAME = "Origin UI";
 
 export default function ChangePasswordForm({
   identifier,
@@ -59,7 +55,6 @@ export default function ChangePasswordForm({
       confirm_password: "",
     },
   });
-  const id = useId();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm_password, setconfirmPassword] = useState("");
@@ -69,7 +64,7 @@ export default function ChangePasswordForm({
     console.log("userType", userType);
     console.log("passwod chenaged", value);
     const Promis = new Promise(async (resolve, reject) => {
-      const response = await axios
+      await axios
         .post("/api/auth/reset-password", {
           identifier: identifier,
           userType: userType,
@@ -78,8 +73,8 @@ export default function ChangePasswordForm({
         .catch((error) => {
           reject({ error: error.message });
         })
-        .then((res: any) => {
-          resolve(res.data.message || "Password changed successfully");
+        .then((res) => {
+          resolve(res?.data?.message || "Password changed successfully");
           setOpen(false);
           router.push("institute-login");
         })
@@ -105,7 +100,7 @@ export default function ChangePasswordForm({
           : ""
         : form.clearErrors("confirm_password")
     );
-  }, [confirm_password, password]);
+  }, [confirm_password, password, form]);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>

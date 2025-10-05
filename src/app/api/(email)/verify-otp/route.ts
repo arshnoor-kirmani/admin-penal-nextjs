@@ -1,8 +1,5 @@
 import InstituteModel, { Institute } from "@/models/InstituteSchema";
-import axios from "axios";
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { verify } from "node:crypto";
 
 export async function POST(request: Request) {
   try {

@@ -1,4 +1,4 @@
-import SignInForm from "@/components/custom/auth/student-sign-in-form";
+import SignInForm from "@/components/custom/auth/student/student-sign-in-form";
 import React from "react";
 
 export default function page() {
