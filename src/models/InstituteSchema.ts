@@ -35,8 +35,6 @@ export interface rules {
   show_teacher: boolean;
 }
 export interface Institute extends Document {
-  _id: unknown;
-  _v: number;
   username: string;
   email: string;
   password: string;
@@ -60,22 +58,23 @@ export interface Institute extends Document {
 
 const InstituteSchema = new Schema<Institute>({
   username: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  institute_name: { type: String, required: true },
-  user_type: { type: String, required: true, default: "admin" },
-  address: { type: String },
-  official_website: { type: String },
-  owner: { type: String },
+  institute_name: { type: String, required: true, default: "" },
+  institute_code: { type: String, required: true, unique: true },
+  user_type: { type: String, required: true, default: "institute" },
+  address: { type: String, default: "" },
+  official_website: { type: String, default: "" },
+  owner: { type: String, default: "" },
   users: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  total_teachers: { type: Number },
-  total_students: { type: Number },
+  total_teachers: { type: Number, default: 0 },
+  total_students: { type: Number, default: 0 },
   courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
   isVerify: { type: Boolean, default: false },
-  verifyCode: { type: Number },
-  verifyExpiry: { type: Date },
+  verifyCode: { type: Number, default: null },
+  verifyExpiry: { type: Date, default: null },
   forget_password_code: { type: Number, default: 12345 },
-  forget_password_code_expriy: { type: Date },
+  forget_password_code_expriy: { type: Date, default: null },
   rules: {
     type: Object,
     default: {
@@ -95,7 +94,6 @@ const InstituteSchema = new Schema<Institute>({
       result_permession: true,
     },
   },
-  institute_code: { type: String, required: true, unique: true },
 });
 
 const InstituteModel =
