@@ -14,6 +14,11 @@ export interface InstituteInfo {
   courses: Course[];
   rules: { [key: string]: boolean | undefined };
   institute_short_name: string;
+  total_student: number;
+  total_teacher: number;
+  total_courses: number;
+  total_unpaid: number;
+  recent: [];
 }
 
 // Define the initial state using that type
@@ -25,6 +30,10 @@ const initialState: InstituteInfo = {
   profile_url: "",
   identifier: "",
   institute_name: "",
+  total_student: 0,
+  total_teacher: 0,
+  total_courses: 0,
+  total_unpaid: 0,
   users: [],
   courses: [],
   rules: {
@@ -49,6 +58,7 @@ const initialState: InstituteInfo = {
     show_teacher: undefined,
   },
   institute_short_name: "",
+  recent: [],
 };
 
 export const instituteSlice = createSlice({

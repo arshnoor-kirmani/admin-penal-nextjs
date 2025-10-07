@@ -13,6 +13,8 @@ declare module "next-auth" {
     username?: string;
     user_type: string;
     institute_id?: string;
+    logo?: string;
+    profile_url?: string;
   }
 }
 

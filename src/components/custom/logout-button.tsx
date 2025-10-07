@@ -14,12 +14,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 
-export default function LogoutButton() {
+export default function LogoutButton({
+  children,
+  variant,
+}: {
+  children?: React.ReactNode;
+  variant?: "ghost" | "outline";
+}) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" className="cursor-pointer ">
-          <LogOut />
+        <Button
+          variant={variant ? variant : "outline"}
+          className="cursor-pointer "
+        >
+          {children ? children : <LogOut size={16} />}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

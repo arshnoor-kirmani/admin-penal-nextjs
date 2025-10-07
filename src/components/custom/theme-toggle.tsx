@@ -5,11 +5,11 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
+export function ThemeToggle({ variant }: { variant?: "outline" | "ghost" }) {
   const { theme, setTheme } = useTheme();
   return (
     <Button
-      variant="outline"
+      variant={variant ? variant : "outline"}
       size="icon"
       onClick={() => (theme == "dark" ? setTheme("light") : setTheme("dark"))}
       className="cursor-pointer"

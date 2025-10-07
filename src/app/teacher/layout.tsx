@@ -5,7 +5,7 @@ import Sidebar from "@/components/custom/admin/sidebar";
 import SessionProvider from "@/components/custom/SessionProvider";
 
 export const metadata: Metadata = {
-  title: "Teacner Panel | Dashboard",
+  title: "Admin Panel | Dashboard",
   description: "Dashboard for managing institute resources",
 };
 
@@ -18,8 +18,8 @@ export default function RootLayout({
     <SessionProvider>
       <SidebarProvider>
         <Sidebar />
-        <div>
-          <SidebarTrigger className="absolute" />
+        <div className="m-0 w-full h-full">
+          <SidebarTrigger className="absolute z-100" />
           {children}
         </div>
       </SidebarProvider>

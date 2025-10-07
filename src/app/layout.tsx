@@ -30,9 +30,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <StoreProvider>{children}</StoreProvider>
-          <div className="absolute top-1 right-1">
-            <ThemeToggle />
-          </div>
         </ThemeProvider>
         <Toaster richColors />
       </body>

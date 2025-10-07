@@ -16,6 +16,7 @@ import {
   Book,
   UserPlus,
   LogIn,
+  LogOutIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -43,6 +44,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import LogoutButton from "@/components/custom/logout-button";
@@ -204,7 +207,6 @@ export default function Sidebar_() {
     institute_id: string,
     user_type: string
   ) => {
-    console.log("Checking.....", identifier);
     setFetchingInfo(true);
     try {
       const URL =
@@ -215,64 +217,43 @@ export default function Sidebar_() {
           : user_type === "teacher"
           ? "/api/auth/get-teacher-info"
           : "";
-      console.log("Fechgin URL = ", URL, identifier, institute_id);
       await axios
         .post(URL, {
           identifier,
           institute_id,
         })
         .then((res) => {
-          console.log("Institute Info Response:", res.data);
           // Set the institute info in Redux store
           if (res.data && res.data.success && res.data.user) {
             const user = res.data.user;
-            console.log("Feched User", user);
             let data;
             // Set Institute information in userInformatio Variable
             if (user.user_type === "institute") {
               data = dispatch(
                 setInstituteInfo({
-                  logo: user.logo || "https://github.com/shadcn.png",
-                  profile_url:
-                    user.profile_url || "https://github.com/shadcn.png",
-                  institute_name: user.institute_name || "Institute Name",
                   institute_id: user._id,
-                  username: user.username || "Username",
                   identifier: user.email || "Email",
-                  users: user.users || [],
-                  courses: user.courses || [],
-                  rules: user.rules || "",
-                  institute_short_name:
-                    user.institute_short_name || "Institute Short Name",
-                  user_type: user.user_type || "institute",
+                  ...user,
                 })
               );
             } else if (user.user_type === "student") {
-              console.log("Student user", user);
               data = dispatch(
                 setStudentInfo({
                   username: user.student_name || "Username",
-                  institute_id: user.institute_id || "",
-                  institute_name: user.institute_name || "Institute Name",
                   profile_url:
                     user.profile_url || "https://github.com/shadcn.png",
-                  rules: user.rules || "",
                   identifier: user.student_id || "Student ID",
-                  user_type: user.user_type || "student",
+                  ...user,
                 })
               );
             } else if (user.user_type === "teacher") {
-              console.log("Teacher user", user);
               data = dispatch(
                 setTeacherInfo({
                   username: user.teacher_name || "Username",
-                  institute_id: user.institute_id || "",
-                  institute_name: user.institute_name || "Institute Name",
                   profile_url:
                     user.profile_url || "https://github.com/shadcn.png",
-                  rules: user.rules || "",
                   identifier: user.teacher_id || "Teacher ID",
-                  user_type: user.user_type || "teacher",
+                  ...user,
                 })
               );
             }
@@ -304,7 +285,6 @@ export default function Sidebar_() {
   // ======================================================
   useEffect(() => {
     if (!session) return;
-    console.log("session", session);
     if (session?.identifier === userInformation.identifier) return;
     if (!!userInformation.identifier) {
       return;
@@ -444,8 +424,6 @@ export default function Sidebar_() {
                 userInformation.user_type === "admin" ||
                 userInformation.user_type === "user"
             );
-            console.log("Visible Nav", visibelNav);
-            console.log("User Information", userInformation);
             return (
               visibelNav.length > 0 && (
                 <SidebarGroup key={item.label}>
@@ -486,169 +464,183 @@ export default function Sidebar_() {
         <SidebarMenu>
           <SidebarMenuItem className="flex  gap-2 justify-between">
             {" "}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="size-fit relative">
-                  <Avatar className="size-8">
-                    <AvatarImage src={userInformation.profile_url} />
-                    <AvatarFallback>
-                      <Skeleton className="size-full rounded-full" />
-                    </AvatarFallback>
-                    {/* TODO: Skeleton for Avatar Image */}
-                  </Avatar>
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="max-w-64 ml-4"
-                align="center"
-                sideOffset={7}
-              >
-                <DropdownMenuLabel className="flex min-w-0 flex-col">
-                  <span className="text-foreground truncate text-sm font-medium text-center">
-                    {userInformation.username}
-                  </span>
-                  <span className="text-muted-foreground truncate text-xs font-normal">
-                    {userInformation?.identifier}
-                  </span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  {userInformation.user_type === "institute" && (
-                    <>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/account-center">
-                          <BoltIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Account Center</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/deleted-users">
-                          <UserCircleIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span className="text-xs">
-                            Deleted Students, Teachers
-                          </span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/login-activity">
-                          <InboxIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Login Activity</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {userInformation.user_type === "student" && (
-                    <>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/account-center">
-                          <BoltIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Account Center</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/student-guide">
-                          <BookOpenIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Student Guide</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/login-activity">
-                          <InboxIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Login Activity</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {userInformation.user_type === "teacher" && (
-                    <>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/account-center">
-                          <BoltIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Account Center</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/my-classes">
-                          <Layers2Icon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>My Classes</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/teaching-guides">
-                          <BookOpenIcon
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Teaching Guides</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/login-activity">
-                          <LogIn
-                            size={16}
-                            className="opacity-60"
-                            aria-hidden="true"
-                          />
-                          <span>Login Activity</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuGroup>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer flex items-center gap-2"
-                  onClick={() => {}}
-                >
-                  {/* The actual logout button is hidden, just triggers on click */}
-                  <div className="ml-auto flex justify-center items-center gap-4">
-                    <span>Logout</span>
-                    <LogoutButton />
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ProfileIcon
+              profile_url={userInformation.profile_url}
+              username={userInformation.username}
+              identifier={userInformation.identifier}
+              user_type={userInformation.user_type}
+            />
             <LogoutButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+export function ProfileIcon({
+  profile_url,
+  username,
+  identifier,
+  user_type,
+}: {
+  profile_url: string;
+  username: string;
+  identifier: string;
+  user_type: string;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuButton className="size-fit relative">
+          <Avatar className="size-8" aria-setsize={10}>
+            <AvatarImage src={profile_url} />
+            <AvatarFallback>
+              <Skeleton className="size-full rounded-full" />
+            </AvatarFallback>
+            {/* TODO: Skeleton for Avatar Image */}
+          </Avatar>
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="max-w-64 ml-4"
+        align="center"
+        sideOffset={7}
+      >
+        <DropdownMenuLabel className="flex min-w-0 flex-col">
+          <span className="text-foreground truncate text-sm font-medium text-center">
+            {username}
+          </span>
+          <span className="text-muted-foreground truncate text-xs font-normal">
+            {identifier}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          {user_type === "institute" && (
+            <>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/account-center">
+                  <BoltIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Account Center</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/deleted-users">
+                  <UserCircleIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span className="text-xs">Deleted Students, Teachers</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/login-activity">
+                  <InboxIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Login Activity</span>
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
+          {user_type === "student" && (
+            <>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/account-center">
+                  <BoltIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Account Center</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/student-guide">
+                  <BookOpenIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Student Guide</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/login-activity">
+                  <InboxIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Login Activity</span>
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
+          {user_type === "teacher" && (
+            <>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/account-center">
+                  <BoltIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Account Center</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/my-classes">
+                  <Layers2Icon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>My Classes</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/teaching-guides">
+                  <BookOpenIcon
+                    size={16}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Teaching Guides</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/login-activity">
+                  <LogIn size={16} className="opacity-60" aria-hidden="true" />
+                  <span>Login Activity</span>
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />{" "}
+        <div className="mx-auto flex justify-center items-center gap-4">
+          <LogoutButton
+            variant="ghost"
+            children={
+              <div className="ml-auto flex justify-center items-center gap-4">
+                <span>Logout</span>
+                <LogOutIcon />
+              </div>
+            }
+          />
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
