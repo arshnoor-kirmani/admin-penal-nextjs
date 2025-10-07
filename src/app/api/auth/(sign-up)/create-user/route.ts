@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { username, email, password, instituteId } = await request.json();
     console.log("Received data:", { username, email, password, instituteId });
-    await dbConnect({ Database_name: instituteId });
+    await dbConnect(instituteId);
     try {
       const existingUser = await UserModel.findOne({ email });
       if (existingUser) {

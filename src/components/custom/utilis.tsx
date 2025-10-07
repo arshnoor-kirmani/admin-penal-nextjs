@@ -1,3 +1,5 @@
+import { ArchiveIcon, TrashIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CheckIcon, CircleCheckIcon, CircleIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,11 +18,29 @@ export function ActiveBadge() {
     </Badge>
   );
 }
-export default function DeActiveBadge() {
+export function DeActiveBadge() {
   return (
     <Badge variant="outline" className="gap-1.5">
       <CircleIcon className="fill-red-500 dark:fill-red-400 size-2 inline mr-1.5" />
       Deactive
     </Badge>
+  );
+}
+
+export function DeactiveButton() {
+  return (
+    <Button variant="destructive">
+      <TrashIcon className="-ms-1 opacity-60" size={16} aria-hidden="true" />
+      Deactive
+    </Button>
+  );
+}
+
+export function CustomButton({ text }: { text: string }) {
+  return (
+    <Button>
+      <ArchiveIcon className="-ms-1 opacity-60" size={16} aria-hidden="true" />
+      {text ? text : "Button"}
+    </Button>
   );
 }

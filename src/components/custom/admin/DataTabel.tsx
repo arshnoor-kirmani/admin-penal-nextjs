@@ -35,23 +35,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import data from "./UnpaidFeesData.json";
-import DeActiveBadge, { ActiveBadge } from "../utilis";
+import {
+  DeActiveBadge,
+  ActiveBadge,
+  DeactiveButton,
+  CustomButton,
+} from "../utilis";
 import { Skeleton } from "@/components/ui/skeleton";
-
-export type Student = {
-  student_id: string;
-  isActive: boolean;
-  admission_date: string;
-  username: string;
-  fatherName: string;
-  course_name: string;
-  rollNumber: string;
-  totalFees: number;
-  paidFees: number;
-  remainingFees: number;
-  gender: string;
-};
+import { useAppSelector } from "@/hooks/custom/redux-hooks";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setUnpaidStudents } from "@/lib/store/ReduxSlices/InstituteSlice";
+import { Student } from "@/models/StudentsSchema";
 
 export const columns: ColumnDef<Student>[] = [
   {
@@ -77,11 +72,10 @@ export const columns: ColumnDef<Student>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "isActive",
+    accessorKey: "verify.isActive",
     header: "Student Status",
     cell: ({ row }) => {
-      console.log(row.getValue("isActive"));
-      if (row.getValue("isActive")) {
+      if (row.original.verify?.isActive) {
         return <ActiveBadge />;
       }
       return <DeActiveBadge />;
@@ -95,62 +89,66 @@ export const columns: ColumnDef<Student>[] = [
   {
     accessorKey: "username",
     header: "Name",
-    cell: ({ row }) => <div>{row.getValue("username")}</div>,
+    cell: ({ row }) => <div>{row.original.student_name ?? "-"}</div>,
   },
   {
-    accessorKey: "fatherName",
+    accessorKey: "father_name",
     header: "Father's Name",
-    cell: ({ row }) => <div>{row.getValue("fatherName")}</div>,
+    cell: ({ row }) => <div>{row.original.fatherName ?? "-"} </div>,
   },
   {
     accessorKey: "gender",
     header: "Gender",
-    cell: ({ row }) => <div>{row.getValue("gender")}</div>,
+    cell: ({ row }) => <div>{row.getValue("gender") ?? "-"}</div>,
   },
   {
     accessorKey: "admission_date",
     header: "Admission Date",
-    cell: ({ row }) => <div>{row.getValue("admission_date")}</div>,
+    cell: ({ row }) => (
+      <div>
+        {new Date(row.getValue("admission_date")).toLocaleDateString() ?? "-"}
+      </div>
+    ),
   },
   {
-    accessorKey: "course_name",
+    accessorKey: "course.name",
     header: "Class",
-    cell: ({ row }) => <div>{row.getValue("course_name")}</div>,
+    cell: ({ row }) => <div>{row.original.course_name ?? "-"}</div>,
   },
   {
-    accessorKey: "rollNumber",
+    accessorKey: "roll_no",
     header: "Roll Number",
-    cell: ({ row }) => <div>{row.getValue("rollNumber")}</div>,
+    cell: ({ row }) => <div>{row.getValue("roll_no") ?? "-"}</div>,
   },
   {
-    accessorKey: "totalFees",
+    accessorKey: "fees.total",
     header: () => <div className="text-right">Total Fees</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("totalFees"));
+      const amount = parseFloat(String(row.original.fees?.totalFees));
       const formatted = new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
       }).format(amount);
-      return <div className="text-right font-medium">{formatted}</div>;
+      return <div className="text-right font-medium">{formatted ?? "-"}</div>;
     },
   },
   {
-    accessorKey: "paidFees",
+    accessorKey: "fees.paid",
     header: () => <div className="text-right">Paid Fees</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("paidFees"));
+      const amount = parseFloat(String(row.original.fees?.paidFees));
       const formatted = new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
       }).format(amount);
-      return <div className="text-right font-medium">{formatted}</div>;
+      return <div className="text-right font-medium">{formatted ?? "-"}</div>;
     },
   },
   {
-    accessorKey: "remainingFees",
+    accessorKey: "fees.remaining",
     header: () => <div className="text-right">Remaining Fees</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("remainingFees"));
+      const amount = parseFloat(String(row.original.fees?.remainingFees));
       const formatted = new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
@@ -197,9 +195,35 @@ export function DataTable({ isloading }: { isloading: boolean }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  // -==================================================================-
+  const instituteInfo = useAppSelector((state) => state.institute);
+  const dispatch = useDispatch();
+
+  React.useEffect(() => {
+    if (!instituteInfo.identifier) return;
+    try {
+      axios
+        .get("/api/get-unpaid-student", {
+          params: { institute_id: instituteInfo.institute_id },
+        })
+        .then((res) => {
+          dispatch(setUnpaidStudents(res.data?.students ?? []));
+        })
+        .catch((err) => {
+          console.log("Error in fetching unpaid student", err);
+        });
+    } catch (err) {
+      console.log("Error in fetching unpaid student", err);
+    }
+  }, [instituteInfo.identifier, dispatch]);
+
+  const tableData = React.useMemo(
+    () => instituteInfo.unpaid_student || [],
+    [instituteInfo.unpaid_student]
+  );
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -216,9 +240,11 @@ export function DataTable({ isloading }: { isloading: boolean }) {
       rowSelection,
     },
   });
-  if (isloading) {
+
+  if (isloading || tableData.length === 0) {
     return <DataTableSkelton />;
   }
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
@@ -285,7 +311,9 @@ export function DataTable({ isloading }: { isloading: boolean }) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={row.getValue("isActive") ? "" : "bg-muted-100/40"}
+                  className={
+                    row.original.verify?.isActive ? "" : "bg-muted-100/40"
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -310,6 +338,13 @@ export function DataTable({ isloading }: { isloading: boolean }) {
           </TableBody>
         </Table>
       </div>
+      {(table.getIsAllPageRowsSelected() ||
+        (table.getIsSomePageRowsSelected() && "indeterminate")) && (
+        <div className="flex gap-2 px-2 py-4 justify-center items-center">
+          <CustomButton text="Paid Full Fees" />
+          <DeactiveButton />
+        </div>
+      )}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}

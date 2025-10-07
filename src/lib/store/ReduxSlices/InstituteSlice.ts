@@ -1,4 +1,5 @@
 import { Course, rules } from "@/models/InstituteSchema";
+import { Student } from "@/models/StudentsSchema";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
@@ -19,6 +20,14 @@ export interface InstituteInfo {
   total_courses: number;
   total_unpaid: number;
   recent: [];
+  unpaid_student: Student[];
+  male_student: Student[];
+  female_student: Student[];
+  male_teacher: [];
+  female_teacher: [];
+  monthly_student_enroll: {
+    [key: string]: number;
+  };
 }
 
 // Define the initial state using that type
@@ -59,6 +68,12 @@ const initialState: InstituteInfo = {
   },
   institute_short_name: "",
   recent: [],
+  unpaid_student: [],
+  male_student: [],
+  female_student: [],
+  male_teacher: [],
+  female_teacher: [],
+  monthly_student_enroll: {},
 };
 
 export const instituteSlice = createSlice({
@@ -70,8 +85,42 @@ export const instituteSlice = createSlice({
       console.log("Action", action.payload);
       return { ...state, ...action.payload };
     },
+    setMaleStudents: (state, action: PayloadAction<Student[] | undefined>) => {
+      console.log("Gedner Action", action.payload);
+      if (action.payload) {
+        state.male_student = action.payload
+          .filter((student) => student.gender === "male")
+          .map((student) => JSON.parse(JSON.stringify(student)));
+      } else {
+        state.male_student = [];
+      }
+    },
+    setFemaleStudents: (state, action: PayloadAction<Student[] | undefined>) => {
+      if (action.payload) {
+        state.female_student = action.payload
+          .filter((student) => student.gender === "female")
+          .map((student) => JSON.parse(JSON.stringify(student)));
+      } else {
+        state.female_student = [];
+      }
+    },
+    setUnpaidStudents: (state, action: PayloadAction<Student[] | undefined>) => {
+      console.log("Unpaid Action", action.payload);
+      if (action.payload) {
+        state.unpaid_student = action.payload
+          .filter((student) => student.fees.status === "unpaid")
+          .map((student) => JSON.parse(JSON.stringify(student)));
+      } else {
+        state.unpaid_student = [];
+      }
+    },
   },
 });
 
-export const { setInstituteInfo } = instituteSlice.actions;
+export const {
+  setInstituteInfo,
+  setMaleStudents,
+  setFemaleStudents,
+  setUnpaidStudents,
+} = instituteSlice.actions;
 export default instituteSlice.reducer;

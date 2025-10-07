@@ -16,10 +16,12 @@ export default function RootLayout({
 }>) {
   return (
     <SessionProvider>
-      <SidebarProvider>
+      <SidebarProvider className="w-full h-dvh">
         <Sidebar />
-        <div className="m-0 w-full h-full">
-          <SidebarTrigger className="absolute z-100" />
+        <div className="m-0 w-full h-full relative">
+          <div className="absolute top-1 left-2 z-100">
+            {/* <SidebarTrigger className="sticky top-3 z-100" /> */}
+          </div>{" "}
           {children}
         </div>
       </SidebarProvider>

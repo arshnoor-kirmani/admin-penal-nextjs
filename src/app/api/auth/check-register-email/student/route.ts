@@ -15,27 +15,9 @@ export async function GET(req: Request) {
         { status: 400 }
       );
     }
-    console.log(
-      "==========> Current DB, Identifier : ",
-      _mongoose.connection.db?.databaseName,
-      Database_name
-    );
-    if (
-      _mongoose.connection.db?.databaseName &&
-      _mongoose.connection.db?.databaseName !== String(Database_name)
-    ) {
-      await _mongoose.connection.close().then(() => {
-        console.log("Previous connection closed");
-      });
-    }
 
-    await dbConnect({ Database_name: String(Database_name) });
+    await dbConnect(String(Database_name));
 
-    console.log(
-      "==========> Current DB, Identifier : ",
-      _mongoose.connection.db?.databaseName,
-      Database_name
-    );
     try {
       const exitingStudent = await StudentModel.findOne({ student_id });
       console.log("=====>>>", student_id, exitingStudent);

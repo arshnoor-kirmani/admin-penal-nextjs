@@ -1,35 +1,20 @@
 import dbConnect from "@/lib/DatabaseConnect";
 import { TeacherModel } from "@/models/TeacherSchema";
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
     const { institute_id, teacher_id, name, password } = await request.json();
-    const _mongoose = await mongoose;
 
     console.log(
       teacher_id,
       name,
       password,
-      "==>",
-      _mongoose.connection.db?.databaseName
+      "==>"
     );
-    if (
-      _mongoose.connection.db?.databaseName &&
-      _mongoose.connection.db?.databaseName !== String(institute_id)
-    ) {
-      await _mongoose.connection
-        .close()
-        .then(() => {
-          console.log("Previous connection closed");
-        })
-        .catch((err) => {
-          console.error("Error closing previous connection:", err);
-        });
-    }
-    await dbConnect({ Database_name: institute_id });
+
+    await dbConnect(institute_id);
     try {
       const existingTeacher = await TeacherModel.findOne({ teacher_id });
       if (existingTeacher) {

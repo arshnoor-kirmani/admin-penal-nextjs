@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { username, email, password, institute_name } = await request.json();
     console.log(username, email, password, institute_name);
-    await dbConnect({ Database_name: "institutes" });
+    await dbConnect("institutes");
     try {
       const existingInstitute = await InstituteModel.findOne({ email });
       const verifyCode = Math.floor(100000 + Math.random() * 900000);

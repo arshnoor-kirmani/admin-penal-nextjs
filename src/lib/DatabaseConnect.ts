@@ -1,31 +1,39 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
-type ConnectionObject = {
+export type ConnectionObject = {
   isConnected?: number;
 };
 const connection: ConnectionObject = {};
 
 // Connecting Database
-export default async function dbConnect({
-  Database_name,
-}: {
-  Database_name: string;
-}): Promise<void> {
+export default async function dbConnect(
+  Database_name: string
+): Promise<ConnectionObject> {
   if (
-    connection.isConnected &&
+    mongoose.connection.readyState === 1 &&
     mongoose.connection.db?.databaseName === Database_name
   ) {
     console.log("Already connnected to Database");
-    return;
+    connection.isConnected = mongoose.connection.readyState;
+    return connection;
+  } else if (
+    mongoose.connection.readyState === 1 &&
+    mongoose.connection.db?.databaseName !== String(Database_name)
+  ) {
+    console.log(
+      `Closing previous connection to ${mongoose.connection.db?.databaseName}`
+    );
+    await mongoose.connection.close();
   }
 
   try {
     const URL = `${process.env.MONGODB_URL}/${Database_name}?retryWrites=true&w=majority`;
-    const Db = await mongoose.connect(URL || "", {});
+    const Db = await mongoose.connect(URL || "", { maxPoolSize: 10 });
     connection.isConnected = Db.connections[0].readyState;
     console.log("Database Connect Successfully");
   } catch (err) {
     console.log("Database Connection Failed", err);
     process.exit(1);
   }
+  return connection;
 }

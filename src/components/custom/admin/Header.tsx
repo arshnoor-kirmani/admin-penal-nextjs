@@ -1,6 +1,6 @@
-'use client';
-import * as React from 'react';
-import { usePathname } from 'next/navigation';
+"use client";
+import * as React from "react";
+import { usePathname } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,12 +8,14 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import { MailIcon, UserIcon } from 'lucide-react';
-import { ProfileIcon } from './sidebar';
-import { ThemeToggle } from '../theme-toggle';
-import { useAppSelector } from '@/hooks/custom/redux-hooks';
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { MailIcon, UserIcon } from "lucide-react";
+import { ProfileIcon } from "./sidebar";
+import { ThemeToggle } from "../theme-toggle";
+import { useAppSelector } from "@/hooks/custom/redux-hooks";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 export function Header({ user_type }: { user_type: string }) {
   const InstitueInfo = useAppSelector((state) => state.institute);
@@ -21,19 +23,21 @@ export function Header({ user_type }: { user_type: string }) {
   const TeacherInfo = useAppSelector((state) => state.teacher);
   const navigationLinks: { href: string; label: string }[] = [];
   const pathname = usePathname();
-  const pathSegments = pathname.split('/');
+  const pathSegments = pathname.split("/");
   pathSegments.filter((path, index) => {
-    if (path === '') return false;
+    if (path === "") return false;
     navigationLinks.push({
-      href: '/' + pathSegments.slice(1, index + 1).join('/'),
+      href: "/" + pathSegments.slice(1, index + 1).join("/"),
       label: path.charAt(0).toUpperCase() + path.slice(1),
     });
-    return path !== '';
+    return path !== "";
   });
   console.log(navigationLinks);
   return (
-    <header className="border-b px-4 md:px-6">
-      <div className="flex h-16 items-center justify-between gap-4">
+    <header className="border-b px-4 md:px-6 sticky top-2 right-0 z-10 bg-primary-foreground rounded-2xl">
+      <div className="flex h-12 items-center justify-between gap-4">
+        <SidebarTrigger size="icon" />
+        <Separator orientation="vertical" />
         <BreadCrumb navigationLinks={navigationLinks} />
         {/* Right side */}
         <div className="flex flex-1 items-center justify-end gap-4">
@@ -59,23 +63,23 @@ export function Header({ user_type }: { user_type: string }) {
           {/* User menu */}
           <ProfileIcon
             profile_url={
-              user_type === 'institute'
+              user_type === "institute"
                 ? InstitueInfo.logo
-                : user_type === 'student'
+                : user_type === "student"
                 ? StudentInfo.profile_url
                 : TeacherInfo.profile_url
             }
             username={
-              user_type === 'institute'
+              user_type === "institute"
                 ? InstitueInfo.username
-                : user_type === 'student'
+                : user_type === "student"
                 ? StudentInfo.username
                 : TeacherInfo.username
             }
             identifier={
-              user_type === 'institute'
+              user_type === "institute"
                 ? InstitueInfo.identifier
-                : user_type === 'student'
+                : user_type === "student"
                 ? StudentInfo.identifier
                 : TeacherInfo.identifier
             }
@@ -100,9 +104,9 @@ export function BreadCrumb({
           <React.Fragment key={index}>
             <BreadcrumbItem>
               {link.href === navigationLinks[navigationLinks.length - 1].href ||
-              link.href === '/admin' ||
-              link.href === '/student' ||
-              link.href === '/teacher' ? (
+              link.href === "/admin" ||
+              link.href === "/student" ||
+              link.href === "/teacher" ? (
                 <BreadcrumbPage>{link.label}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink href={link.href}>{link.label}</BreadcrumbLink>

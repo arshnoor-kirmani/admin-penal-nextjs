@@ -1,13 +1,40 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface Student extends Document {
-  verify: { isVerify: boolean; isActive: boolean };
-  user_type: string;
-  institute_id: string;
   student_id: string;
   student_name: string;
-  profile_url: string;
   password: string;
+  verify: { isVerify: boolean; isActive: boolean };
+  user_type: string;
+  institute_code: string;
+  institute_id: string;
+  rules: {
+    all: boolean;
+    profile_edit: boolean;
+    send_message: boolean;
+    inbox_message: boolean;
+    website_setting: boolean;
+    add_teacher: boolean;
+    edit_teacher: boolean;
+    delete_teacher: boolean;
+    salary_management: boolean;
+    add_student: boolean;
+    edit_student: boolean;
+    delete_student: boolean;
+    fees_management: boolean;
+    result_permession: boolean;
+  };
+  fees: {
+    totalFees: number;
+    status: string;
+    paidFees: number;
+    remainingFees: number;
+    detail: { date: Date; amount: number }[];
+  };
+  gender: string;
+  fatherName: string;
+  course_name: string;
+  admission_name: Date;
   //   institute_info: {
   //     institute_name: string;
   //     branch: { name: string };
@@ -57,6 +84,27 @@ const StudentSchema: Schema<Student> = new mongoose.Schema({
     isActive: { type: Boolean, default: true },
   },
   user_type: { type: String, required: true, default: "student" },
+  institute_code: { type: String, required: true },
+  rules: {
+    type: Object,
+    default: {
+      // TODO::
+    },
+  },
+  fees: {
+    type: Object,
+    default: {
+      totalFees: 0,
+      status: "paid",
+      paidFees: 0,
+      remainingFees: 0,
+      detail: [],
+    },
+  },
+  gender: { type: String, required: true },
+  fatherName: { type: String, required: true },
+  course_name: { type: String, required: true },
+  admission_name: { type: Date, required: true, default: Date.now() },
 });
 
 export const StudentModel =

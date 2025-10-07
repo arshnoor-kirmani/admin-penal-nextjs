@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/hooks/custom/redux-hooks";
-import { InstituteInfo } from "@/lib/store/ReduxSlices/InstituteSlice";
+import {
+  InstituteInfo,
+  setMaleStudents,
+} from "@/lib/store/ReduxSlices/InstituteSlice";
 import {
   LibraryBigIcon,
   UsersIcon,
@@ -20,7 +23,7 @@ import {
   Wallet2,
 } from "lucide-react";
 import { Session } from "next-auth";
-import React from "react";
+import React, { useEffect } from "react";
 import CountUp from "react-countup";
 import ChartBarHorizontal, { ChartBarHorizontalSkeloton } from "../BarChart";
 import ChartPieLabel, { ChartPieLabelSkeloton } from "../CircelChart";
@@ -35,13 +38,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
+import axios from "axios";
+import { useDispatch } from "react-redux";
 export default function Dashboard({ session }: { session: Session }) {
+  const dispatch = useDispatch();
   const instituteInfo = useAppSelector(
     (state) => state.institute
   ) as InstituteInfo;
   if (!session && !instituteInfo) {
     return <div>Loading...</div>;
   }
+  useEffect(() => {
+    console.log("Dashobard Component......");
+    if (!instituteInfo.identifier) return;
+    try {
+      axios
+        .get(`/api/get-gender-student`, {
+          params: {
+            institute_id: instituteInfo.institute_id,
+            gender: "male",
+          },
+        })
+        .then((res) => {
+          console.log("Student Gender", res.data);
+          dispatch(setMaleStudents(res.data.students));
+        })
+        .catch((err) => {
+          console.log("Error in fetching student gender", err);
+        });
+    } catch (error) {
+      console.log("Error in fetching student gender", error);
+    }
+  }, [instituteInfo.total_student]);
   return (
     // <main className="min-h-screen ">
 
@@ -64,7 +92,10 @@ export default function Dashboard({ session }: { session: Session }) {
               />
 
               <ChartPieLabel
-                isloading={instituteInfo.identifier ? false : true}
+                isloading={instituteInfo.male_student.length > 0 ? false : true}
+                total_student={instituteInfo?.total_student}
+                male_student={instituteInfo?.male_student.length}
+                female_student={instituteInfo?.female_student.length}
               />
             </Card>
           </div>

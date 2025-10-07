@@ -10,17 +10,7 @@ export async function GET(req: Request) {
       institute_id = searchParams.get("institute_id");
     const _mongoose = await mongoose;
 
-    if (_mongoose.connection.db?.databaseName !== String(institute_id)) {
-      await _mongoose.connection
-        .close()
-        .then(() => {
-          console.log("Previous connection closed");
-        })
-        .catch((error) => {
-          console.log("error in closing previes database", error);
-        });
-    }
-    await dbConnect({ Database_name: String(institute_id) });
+    await dbConnect(String(institute_id));
     try {
       const teacher = await TeacherModel.findOne({ teacher_id });
       if (!teacher) {

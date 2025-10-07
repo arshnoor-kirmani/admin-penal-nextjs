@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   if (!email) {
     throw new Error("Prams messing!!");
   }
-  await dbConnect({ Database_name: "institutes" });
+  await dbConnect("institutes");
   // Finding Account
 
   if (Database_name === "institutes") {
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   if (!email) {
     throw new Error("Prams messing!!");
   }
-  await dbConnect({ Database_name: "institutes" });
+  await dbConnect("institutes");
 
   if (Database_name === "institutes") {
     const institute = await InstituteModel.findOne({ email });

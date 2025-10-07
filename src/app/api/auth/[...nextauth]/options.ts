@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please provide email and password both.");
         }
         // Connect to the database
-        await dbConnect({ Database_name: "institutes" });
+        await dbConnect("institutes");
         // Find the user by email or username
         const institute = await InstituteModel.findOne({
           email: credentials.email,
@@ -91,21 +91,8 @@ export const authOptions: NextAuthOptions = {
           );
         }
         // Connect to the database
-        if (
-          mongoose.connection.db?.databaseName &&
-          mongoose.connection.db?.databaseName !==
-            String(credentials.institute_id)
-        ) {
-          mongoose.connection
-            .close()
-            .then(() => {
-              console.log("Previous connection closed");
-            })
-            .catch((err) => {
-              console.error("Error closing previous connection:", err);
-            });
-        }
-        await dbConnect({ Database_name: String(credentials.institute_id) });
+
+        await dbConnect(String(credentials.institute_id));
         // Find the user by student_id
         const student = await StudentModel.findOne({
           student_id: credentials.student_id,
@@ -179,7 +166,7 @@ export const authOptions: NextAuthOptions = {
               console.error("Error closing previous connection:", err);
             });
         }
-        await dbConnect({ Database_name: String(credentials.institute_id) });
+        await dbConnect(String(credentials.institute_id));
         // Find the user by email or username
         const teacher = await TeacherModel.findOne({
           teacher_id: credentials.teacher_id,

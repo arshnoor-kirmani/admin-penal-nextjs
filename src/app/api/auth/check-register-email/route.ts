@@ -14,13 +14,9 @@ export async function GET(request: Request) {
       _mongoose.connection.db?.databaseName,
       "institutes"
     );
-    if (_mongoose.connection.db?.databaseName !== String("institutes")) {
-      await _mongoose.connection.close().then(() => {
-        console.log("Previous connection closed");
-      });
-    }
+
     console.log(email);
-    await dbConnect({ Database_name: "institutes" });
+    await dbConnect("institutes");
     try {
       const exitingInstiute = await InstituteModel.findOne({ email });
       console.log("exitingInstiute", exitingInstiute);
