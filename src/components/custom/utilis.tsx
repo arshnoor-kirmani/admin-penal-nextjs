@@ -1,6 +1,6 @@
 import { ArchiveIcon, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, CircleCheckIcon, CircleIcon } from "lucide-react";
+import { CircleIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 export function ActiveBadge() {

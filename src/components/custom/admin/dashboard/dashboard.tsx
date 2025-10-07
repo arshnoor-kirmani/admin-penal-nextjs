@@ -1,14 +1,10 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/hooks/custom/redux-hooks";
@@ -25,19 +21,9 @@ import {
 import { Session } from "next-auth";
 import React, { useEffect } from "react";
 import CountUp from "react-countup";
-import ChartBarHorizontal, { ChartBarHorizontalSkeloton } from "../BarChart";
-import ChartPieLabel, { ChartPieLabelSkeloton } from "../CircelChart";
+import ChartBarHorizontal from "../BarChart";
+import ChartPieLabel from "../CircelChart";
 import { DataTable } from "../DataTabel";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 export default function Dashboard({ session }: { session: Session }) {
@@ -45,11 +31,7 @@ export default function Dashboard({ session }: { session: Session }) {
   const instituteInfo = useAppSelector(
     (state) => state.institute
   ) as InstituteInfo;
-  if (!session && !instituteInfo) {
-    return <div>Loading...</div>;
-  }
   useEffect(() => {
-    console.log("Dashobard Component......");
     if (!instituteInfo.identifier) return;
     try {
       axios
@@ -60,7 +42,6 @@ export default function Dashboard({ session }: { session: Session }) {
           },
         })
         .then((res) => {
-          console.log("Student Gender", res.data);
           dispatch(setMaleStudents(res.data.students));
         })
         .catch((err) => {
@@ -69,7 +50,16 @@ export default function Dashboard({ session }: { session: Session }) {
     } catch (error) {
       console.log("Error in fetching student gender", error);
     }
-  }, [instituteInfo.total_student]);
+  }, [
+    instituteInfo.total_student,
+    dispatch,
+    instituteInfo.identifier,
+    instituteInfo.institute_id,
+  ]);
+
+  if (!session && !instituteInfo.identifier) {
+    return <div>Loading...</div>;
+  }
   return (
     // <main className="min-h-screen ">
 

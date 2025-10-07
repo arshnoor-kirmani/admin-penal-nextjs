@@ -44,8 +44,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import LogoutButton from "@/components/custom/logout-button";
@@ -336,7 +334,14 @@ export default function Sidebar_() {
       success: "Institute info loaded",
       error: "Error loading institute info",
     });
-  }, [session, instituteInfo, studentInfo, teacherInfo]);
+  }, [
+    session,
+    instituteInfo,
+    studentInfo,
+    teacherInfo,
+    fetchInstituteInfo,
+    userInformation.identifier,
+  ]);
   if (fetchingInfo) {
     return (
       <Sidebar side="left" variant="floating" id="sidebar-skeleton">
@@ -630,15 +635,12 @@ export function ProfileIcon({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />{" "}
         <div className="mx-auto flex justify-center items-center gap-4">
-          <LogoutButton
-            variant="ghost"
-            children={
-              <div className="ml-auto flex justify-center items-center gap-4">
-                <span>Logout</span>
-                <LogOutIcon />
-              </div>
-            }
-          />
+          <LogoutButton variant="ghost">
+            <div className="ml-auto flex justify-center items-center gap-4">
+              <span>Logout</span>
+              <LogOutIcon />
+            </div>
+          </LogoutButton>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

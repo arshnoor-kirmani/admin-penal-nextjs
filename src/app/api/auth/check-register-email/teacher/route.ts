@@ -8,7 +8,6 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const teacher_id = searchParams.get("teacher_id"),
       institute_id = searchParams.get("institute_id");
-    const _mongoose = await mongoose;
 
     await dbConnect(String(institute_id));
     try {

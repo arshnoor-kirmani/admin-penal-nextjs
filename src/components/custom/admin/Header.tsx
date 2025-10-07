@@ -10,7 +10,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { MailIcon, UserIcon } from "lucide-react";
+import { MailIcon } from "lucide-react";
 import { ProfileIcon } from "./sidebar";
 import { ThemeToggle } from "../theme-toggle";
 import { useAppSelector } from "@/hooks/custom/redux-hooks";

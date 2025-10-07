@@ -8,7 +8,6 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const student_id = searchParams.get("student_id");
     const Database_name = searchParams.get("institute_id");
-    const _mongoose = await mongoose;
     if (!student_id || !Database_name) {
       return NextResponse.json(
         { message: "Missing required fields" },

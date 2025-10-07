@@ -1,13 +1,12 @@
-import { NextAuthOptions, User } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import InstituteModel, { Institute } from "@/models/InstituteSchema";
+import InstituteModel from "@/models/InstituteSchema";
 import dbConnect from "@/lib/DatabaseConnect";
-import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { StudentModel } from "@/models/StudentsSchema";
 import { TeacherModel } from "@/models/TeacherSchema";
-import { User as UserType, DefaultUser } from "next-auth";
+import { User as UserType } from "next-auth";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({

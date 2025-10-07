@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Fira_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/custom/theme-provider";
-import { ThemeToggle } from "@/components/custom/theme-toggle";
 import { Toaster } from "sonner";
 import StoreProvider from "@/components/custom/StoreProvider";
 

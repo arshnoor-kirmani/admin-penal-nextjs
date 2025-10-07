@@ -1,6 +1,5 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -20,7 +19,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const description = "A pie chart with a label";
-const total_student = 1287;
 
 const chartConfig = {
   male: {
@@ -36,7 +34,6 @@ const chartConfig = {
 export default function ChartPieLabel({
   isloading,
   male_student,
-  female_student,
   total_student,
 }: {
   isloading: boolean;
@@ -49,15 +46,10 @@ export default function ChartPieLabel({
   }
   const chartData = [
     // TODO::
-    {
-      browser: "male",
-      visitors: male_student * 877,
-      fill: "var(--color-ring)",
-    },
+    { browser: "male", visitors: male_student },
     {
       browser: "female",
       visitors: total_student - male_student,
-      fill: "var(--color-muted-foreground)",
     },
   ];
   return (

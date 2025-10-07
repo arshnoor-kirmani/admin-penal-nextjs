@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronDown, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -215,7 +215,7 @@ export function DataTable({ isloading }: { isloading: boolean }) {
     } catch (err) {
       console.log("Error in fetching unpaid student", err);
     }
-  }, [instituteInfo.identifier, dispatch]);
+  }, [instituteInfo.identifier, dispatch, instituteInfo.institute_id]);
 
   const tableData = React.useMemo(
     () => instituteInfo.unpaid_student || [],

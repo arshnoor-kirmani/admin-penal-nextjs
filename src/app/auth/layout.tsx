@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import Sidebar from "@/components/custom/admin/sidebar";
-import SessionProvider from "@/components/custom/SessionProvider";
 import { ThemeToggle } from "@/components/custom/theme-toggle";
 
 export const metadata: Metadata = {
