@@ -239,7 +239,10 @@ export default function OTP_Component({
   );
 }
 
-function Slot(props: SlotProps) {
+interface CustomSlotProps extends SlotProps {
+  correct?: boolean;
+}
+function Slot(props: CustomSlotProps) {
   return (
     <div
       className={cn(
