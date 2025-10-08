@@ -200,88 +200,86 @@ export default function Sidebar_() {
   const teacherInfo = useAppSelector((state) => state.teacher);
   // ======================================================
   // ======================================================
-  const fetchInstituteInfo = async (
-    identifier: string,
-    institute_id: string,
-    user_type: string
-  ) => {
-    setFetchingInfo(true);
-    try {
-      const URL =
-        user_type === "institute"
-          ? "/api/auth/get-institute-info"
-          : user_type === "student"
-          ? "/api/auth/get-student-info"
-          : user_type === "teacher"
-          ? "/api/auth/get-teacher-info"
-          : "";
-      await axios
-        .post(URL, {
-          identifier,
-          institute_id,
-        })
-        .then((res) => {
-          // Set the institute info in Redux store
-          if (res.data && res.data.success && res.data.user) {
-            const user = res.data.user;
-            let data;
-            // Set Institute information in userInformatio Variable
-            if (user.user_type === "institute") {
-              data = dispatch(
-                setInstituteInfo({
-                  institute_id: user._id,
-                  identifier: user.email || "Email",
-                  ...user,
-                })
-              );
-            } else if (user.user_type === "student") {
-              data = dispatch(
-                setStudentInfo({
-                  username: user.student_name || "Username",
-                  profile_url:
-                    user.profile_url || "https://github.com/shadcn.png",
-                  identifier: user.student_id || "Student ID",
-                  ...user,
-                })
-              );
-            } else if (user.user_type === "teacher") {
-              data = dispatch(
-                setTeacherInfo({
-                  username: user.teacher_name || "Username",
-                  profile_url:
-                    user.profile_url || "https://github.com/shadcn.png",
-                  identifier: user.teacher_id || "Teacher ID",
-                  ...user,
-                })
-              );
-            }
-            if (data === undefined) {
-              toast.error("Somthing wrong.....");
-            }
-            setUserInformation({
-              ...data?.payload,
-            } as InstituteInfo & StudentInfo & TeacherInfo);
-          } else {
-            toast.error(
-              res.data?.message ||
-                "Failed to load institute info. Please try again."
-            );
-          }
-
-          setFetchingInfo(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching institute info:", err);
-          setFetchingInfo(false);
-          toast.error("Something went wrong.....");
-        });
-    } catch (error) {
-      console.error("Error fetching institute info:", error);
-    }
-  };
-  // ======================================================
-  // ======================================================
   useEffect(() => {
+    const fetchInstituteInfo = async (
+      identifier: string,
+      institute_id: string,
+      user_type: string
+    ) => {
+      setFetchingInfo(true);
+      try {
+        const URL =
+          user_type === "institute"
+            ? "/api/auth/get-institute-info"
+            : user_type === "student"
+            ? "/api/auth/get-student-info"
+            : user_type === "teacher"
+            ? "/api/auth/get-teacher-info"
+            : "";
+        await axios
+          .post(URL, {
+            identifier,
+            institute_id,
+          })
+          .then((res) => {
+            // Set the institute info in Redux store
+            if (res.data && res.data.success && res.data.user) {
+              const user = res.data.user;
+              let data;
+              // Set Institute information in userInformatio Variable
+              if (user.user_type === "institute") {
+                data = dispatch(
+                  setInstituteInfo({
+                    institute_id: user._id,
+                    identifier: user.email || "Email",
+                    ...user,
+                  })
+                );
+              } else if (user.user_type === "student") {
+                data = dispatch(
+                  setStudentInfo({
+                    username: user.student_name || "Username",
+                    profile_url:
+                      user.profile_url || "https://github.com/shadcn.png",
+                    identifier: user.student_id || "Student ID",
+                    ...user,
+                  })
+                );
+              } else if (user.user_type === "teacher") {
+                data = dispatch(
+                  setTeacherInfo({
+                    username: user.teacher_name || "Username",
+                    profile_url:
+                      user.profile_url || "https://github.com/shadcn.png",
+                    identifier: user.teacher_id || "Teacher ID",
+                    ...user,
+                  })
+                );
+              }
+              if (data === undefined) {
+                toast.error("Somthing wrong.....");
+              }
+              setUserInformation({
+                ...data?.payload,
+              } as InstituteInfo & StudentInfo & TeacherInfo);
+            } else {
+              toast.error(
+                res.data?.message ||
+                  "Failed to load institute info. Please try again."
+              );
+            }
+
+            setFetchingInfo(false);
+          })
+          .catch((err) => {
+            console.error("Error fetching institute info:", err);
+            setFetchingInfo(false);
+            toast.error("Something went wrong.....");
+          });
+      } catch (error) {
+        console.error("Error fetching institute info:", error);
+      }
+    };
     if (!session) return;
     if (session?.identifier === userInformation.identifier) return;
     if (!!userInformation.identifier) {
@@ -339,8 +337,8 @@ export default function Sidebar_() {
     instituteInfo,
     studentInfo,
     teacherInfo,
-    fetchInstituteInfo,
     userInformation.identifier,
+    dispatch,
   ]);
   if (fetchingInfo) {
     return (

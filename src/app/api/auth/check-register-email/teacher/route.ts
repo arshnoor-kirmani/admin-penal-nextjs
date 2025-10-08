@@ -1,6 +1,5 @@
 import dbConnect from "@/lib/DatabaseConnect";
 import { TeacherModel } from "@/models/TeacherSchema";
-import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {

@@ -60,9 +60,8 @@ const formSchema = z.object({
 
 export default function Page() {
   const [open, setOpen] = useState(false);
-  const [Success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [OTP_Code, setOTP_Code] = useState("");
-  const [OTP_Expiry, setOTP_Expiry] = useState("2025-09-09T06:02:09.783Z");
   const [allInputDisabled, setAllInputDisabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [value, setValue] = useState("");
@@ -119,7 +118,7 @@ export default function Page() {
                 .then(() => {
                   setAllInputDisabled(true);
                   setOTP_Code(user.verifyCode.toString());
-                  setOTP_Expiry(user.verifyExpiry);
+                  // setOTP_Expiry(user.verifyExpiry);
                   console.log(OTP_Code);
                   // TODO::
                   // if (OTP_Code) {
@@ -180,7 +179,7 @@ export default function Page() {
     });
     toast.promise(myPromise, {
       loading: "Loading....",
-      success: (data) => {
+      success: () => {
         return "Your institute account has been created. Please verify your account.";
       },
       error: "Error",
@@ -220,7 +219,7 @@ export default function Page() {
           setCheckingEmail(false);
         });
     }
-  }, [value]);
+  }, [value, form]);
   return (
     <div className="container flex items-center justify-center min-h-screen">
       <div className="w-[400px] h-[50%] overflow-hidden">
@@ -365,7 +364,12 @@ export default function Page() {
                 <Button
                   type="submit"
                   className="w-full p-5 cursor-pointer"
-                  disabled={submitDisabled || checkingEmail || allInputDisabled}
+                  disabled={
+                    submitDisabled ||
+                    checkingEmail ||
+                    allInputDisabled ||
+                    success
+                  }
                 >
                   Submit
                 </Button>

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import dbConnect from "@/lib/DatabaseConnect";
 import { StudentModel } from "@/models/StudentsSchema";
 
@@ -8,7 +7,6 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const Database_name = searchParams.get("institute_id");
     const gender = searchParams.get("gender");
-    const _mongoose = await mongoose;
 
     if (!Database_name) {
       return NextResponse.json(
