@@ -13,7 +13,12 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
+import {
+  ChevronDown,
+  MoreHorizontal,
+  PlusIcon,
+  UserCircle2Icon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +52,13 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setUnpaidStudents } from "@/lib/store/ReduxSlices/InstituteSlice";
 import { Student } from "@/models/StudentsSchema";
+import {
+  Empty,
+  EmptyContent,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 export const columns: ColumnDef<Student>[] = [
   {
@@ -241,7 +253,7 @@ export function DataTable({ isloading }: { isloading: boolean }) {
     },
   });
 
-  if (isloading || tableData.length === 0) {
+  if (isloading) {
     return <DataTableSkelton />;
   }
 
@@ -329,9 +341,27 @@ export function DataTable({ isloading }: { isloading: boolean }) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center hover:bg-transparent"
                 >
-                  No results.
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia>
+                        <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:size-12 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+                          <UserCircle2Icon size={40} />
+                        </div>
+                      </EmptyMedia>
+                      <EmptyTitle>No Student Found</EmptyTitle>
+                      {/* <EmptyDescription className="capitalize">
+                        no Male or Female student found in your institute
+                      </EmptyDescription> */}
+                    </EmptyHeader>
+                    <EmptyContent>
+                      <Button size="sm">
+                        <PlusIcon />
+                        add Student
+                      </Button>
+                    </EmptyContent>
+                  </Empty>
                 </TableCell>
               </TableRow>
             )}

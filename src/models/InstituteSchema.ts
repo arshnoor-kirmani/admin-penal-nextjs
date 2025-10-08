@@ -38,6 +38,7 @@ export interface Institute extends Document {
   username: string;
   email: string;
   password: string;
+  institute_short_name: string;
   institute_name: string;
   user_type: string;
   address?: string;
@@ -62,6 +63,7 @@ const InstituteSchema = new Schema<Institute>({
   password: { type: String, required: true },
   institute_name: { type: String, required: true, default: "" },
   institute_code: { type: String, required: true, unique: true },
+  institute_short_name: { type: String, required: true, default: "" },
   user_type: { type: String, required: true, default: "institute" },
   address: { type: String, default: "" },
   official_website: { type: String, default: "" },

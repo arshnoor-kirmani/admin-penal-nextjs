@@ -12,10 +12,13 @@ export interface StudentInfo {
   identifier: string;
   user_type: string;
   rules: { [key: string]: boolean | undefined };
+  institute_shor_name?: string;
 }
 
 // Define the initial state using that type
 const initialState: StudentInfo = {
+  logo: "",
+  institute_shor_name: "",
   profile_url: "",
   institute_id: "",
   identifier: "",

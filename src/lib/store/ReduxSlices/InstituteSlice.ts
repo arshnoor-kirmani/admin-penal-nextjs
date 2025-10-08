@@ -5,6 +5,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
 export interface InstituteInfo {
   institute_name: string;
+  institute_short_name: string;
   logo: string;
   profile_url: string;
   institute_id: string;
@@ -14,7 +15,6 @@ export interface InstituteInfo {
   users: rules[];
   courses: Course[];
   rules: { [key: string]: boolean | undefined };
-  institute_short_name: string;
   total_student: number;
   total_teacher: number;
   total_courses: number;
@@ -25,9 +25,7 @@ export interface InstituteInfo {
   female_student: Student[];
   male_teacher: [];
   female_teacher: [];
-  monthly_student_enroll: {
-    [key: string]: number;
-  };
+  monthly_student_enroll: { month: string; students: number }[];
 }
 
 // Define the initial state using that type
@@ -73,7 +71,7 @@ const initialState: InstituteInfo = {
   female_student: [],
   male_teacher: [],
   female_teacher: [],
-  monthly_student_enroll: {},
+  monthly_student_enroll: [],
 };
 
 export const instituteSlice = createSlice({
@@ -95,7 +93,10 @@ export const instituteSlice = createSlice({
         state.male_student = [];
       }
     },
-    setFemaleStudents: (state, action: PayloadAction<Student[] | undefined>) => {
+    setFemaleStudents: (
+      state,
+      action: PayloadAction<Student[] | undefined>
+    ) => {
       if (action.payload) {
         state.female_student = action.payload
           .filter((student) => student.gender === "female")
@@ -104,7 +105,10 @@ export const instituteSlice = createSlice({
         state.female_student = [];
       }
     },
-    setUnpaidStudents: (state, action: PayloadAction<Student[] | undefined>) => {
+    setUnpaidStudents: (
+      state,
+      action: PayloadAction<Student[] | undefined>
+    ) => {
       console.log("Unpaid Action", action.payload);
       if (action.payload) {
         state.unpaid_student = action.payload

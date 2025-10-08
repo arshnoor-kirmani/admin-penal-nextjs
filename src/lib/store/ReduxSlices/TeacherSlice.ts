@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
 export interface TeacherInfo {
+  institute_shor_name?: string;
   logo?: string;
   institute_name: string;
   profile_url: string;
@@ -15,6 +16,8 @@ export interface TeacherInfo {
 
 // Define the initial state using that type
 const initialState: TeacherInfo = {
+  logo: "",
+  institute_shor_name: "",
   profile_url: "",
   institute_id: "",
   username: "",

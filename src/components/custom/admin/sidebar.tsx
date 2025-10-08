@@ -17,6 +17,7 @@ import {
   UserPlus,
   LogIn,
   LogOutIcon,
+  User,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -399,16 +400,20 @@ export default function Sidebar_() {
         {" "}
         <div className="size-full flex justify-center items-center flex-col gap-2">
           <Avatar className="size-14">
-            <AvatarImage
-              src={
-                userInformation.user_type === "institute"
-                  ? userInformation.logo
-                  : userInformation.profile_url
-              }
-            />
-            <AvatarFallback>
-              <Skeleton className="size-full rounded-full" />
-            </AvatarFallback>
+            <AvatarImage src={userInformation.logo} />
+              <AvatarFallback>
+                {userInformation.logo ? (
+                  <Skeleton className="size-full rounded-full" />
+                ) : (
+                  (() => {
+                    if (!userInformation.username) return null;
+                    const nameParts = userInformation.username.split(" ");
+                    const firstNameInitial = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() : "";
+                    const lastNameInitial = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() : "";
+                    return `${firstNameInitial}${lastNameInitial}`;
+                  })()
+                )}
+              </AvatarFallback>
           </Avatar>
 
           <h1>{userInformation.username}</h1>
@@ -498,7 +503,11 @@ export function ProfileIcon({
           <Avatar className="size-8" aria-setsize={10}>
             <AvatarImage src={profile_url} />
             <AvatarFallback>
-              <Skeleton className="size-full rounded-full" />
+              {profile_url ? (
+                <Skeleton className="size-full rounded-full" />
+              ) : (
+                <User size={15} />
+              )}
             </AvatarFallback>
             {/* TODO: Skeleton for Avatar Image */}
           </Avatar>

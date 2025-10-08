@@ -19,7 +19,7 @@ import {
   Wallet2,
 } from "lucide-react";
 import { Session } from "next-auth";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CountUp from "react-countup";
 import ChartBarHorizontal from "../BarChart";
 import ChartPieLabel from "../CircelChart";
@@ -28,12 +28,14 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 export default function Dashboard({ session }: { session: Session }) {
   const dispatch = useDispatch();
+  const [isloading, setIsloading] = useState(true);
   const instituteInfo = useAppSelector(
     (state) => state.institute
   ) as InstituteInfo;
   useEffect(() => {
     if (!instituteInfo.identifier) return;
     try {
+      setIsloading(true);
       axios
         .get(`/api/get-gender-student`, {
           params: {
@@ -42,7 +44,9 @@ export default function Dashboard({ session }: { session: Session }) {
           },
         })
         .then((res) => {
+          if (!res.data.students) return;
           dispatch(setMaleStudents(res.data.students));
+          setIsloading(false);
         })
         .catch((err) => {
           console.log("Error in fetching student gender", err);
@@ -78,11 +82,12 @@ export default function Dashboard({ session }: { session: Session }) {
             {" "}
             <Card className="bg-transparent border-0 grid garid-cols-1 grid-rows-1 md:grid-cols-2 gap-4 py-4 md:gap-6 md:py-6">
               <ChartBarHorizontal
+                data={instituteInfo.monthly_student_enroll}
                 isloading={instituteInfo.identifier ? false : true}
               />
 
               <ChartPieLabel
-                isloading={instituteInfo.male_student.length > 0 ? false : true}
+                isloading={isloading}
                 total_student={instituteInfo?.total_student}
                 male_student={instituteInfo?.male_student.length}
                 female_student={instituteInfo?.female_student.length}
