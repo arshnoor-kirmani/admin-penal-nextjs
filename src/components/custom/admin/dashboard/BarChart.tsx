@@ -103,7 +103,7 @@ export default function ChartBarHorizontal({
             Showing total visitors for the last {chartData.length} months
           </div>
         </CardFooter>
-        <Empty className="absolute top-0 left-0 w-full h-full flex items-center justify-center backdrop-blur-[1px] bg-card/70">
+        <Empty className="absolute top-0 left-0 w-full h-full flex items-center justify-center backdrop-blur-[1px] bg-popover/70">
           <EmptyHeader>
             <EmptyMedia>
               <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:size-12 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">

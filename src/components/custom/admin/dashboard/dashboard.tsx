@@ -21,9 +21,9 @@ import {
 import { Session } from "next-auth";
 import React, { useEffect, useState } from "react";
 import CountUp from "react-countup";
-import ChartBarHorizontal from "../BarChart";
-import ChartPieLabel from "../CircelChart";
-import { DataTable } from "../DataTabel";
+import ChartBarHorizontal from "./BarChart";
+import ChartPieLabel from "./CircelChart";
+import { DataTable } from "./DataTabel";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 export default function Dashboard({ session }: { session: Session }) {

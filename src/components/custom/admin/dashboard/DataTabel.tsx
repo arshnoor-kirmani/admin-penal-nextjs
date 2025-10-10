@@ -45,7 +45,7 @@ import {
   ActiveBadge,
   DeactiveButton,
   CustomButton,
-} from "../utilis";
+} from "@/components/custom/utilis";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/hooks/custom/redux-hooks";
 import axios from "axios";
