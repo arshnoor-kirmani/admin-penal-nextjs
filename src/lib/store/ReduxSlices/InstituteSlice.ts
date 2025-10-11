@@ -4,10 +4,29 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
 export interface InstituteInfo {
-  institute_type: string;
+  information: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+    landline: string;
+    mobile: string;
+    email: string;
+    website: string;
+    short_name: string;
+    currency: string;
+    timezone: string;
+    working_hours: string;
+    institute_type: string;
+    affiliation: string;
+    established_year: number;
+    institute_code: string;
+    institute_name: string;
+    logo: string;
+    profile_url: string;
+  };
   institute_code: string;
-  established_year: number;
-  institute_affiliation: string;
   institute_name: string;
   institute_short_name: string;
   logo: string;
@@ -34,10 +53,29 @@ export interface InstituteInfo {
 
 // Define the initial state using that type
 const initialState: InstituteInfo = {
-  institute_type: "",
+  information: {
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "",
+    landline: "",
+    mobile: "",
+    email: "",
+    website: "",
+    short_name: "",
+    currency: "",
+    timezone: "",
+    working_hours: "",
+    affiliation: "",
+    established_year: 0,
+    institute_type: "",
+    institute_code: "",
+    institute_name: "",
+    logo: "",
+    profile_url: "",
+  },
   institute_code: "",
-  established_year: 2025,
-  institute_affiliation: "",
   logo: "",
   institute_id: "",
   username: "",
@@ -126,6 +164,31 @@ export const instituteSlice = createSlice({
         state.unpaid_student = [];
       }
     },
+    setProfileInfo: (state, action: PayloadAction<any>) => {
+      console.log("Profile Action", action.payload);
+      const values = action.payload;
+      values.logo && (state.logo = values.logo);
+      values.profile_url && (state.profile_url = values.profile_url);
+      values.institute_name && (state.institute_name = values.institute_name);
+      values.institute_code && (state.institute_code = values.institute_code);
+      values.username && (state.username = values.username);
+
+      state.information = {
+        ...state.information,
+        ...values,
+      };
+
+      // state={
+      //   ...state,
+      //   logo:action.payload.logo,
+      //   profile_url: action.payload.profile_url,
+      //   institute_name: action.payload.institute_name,
+      //   institute_code: action.payload.institute_code,
+      //   information:{
+      //     ...action.payload
+      //   }
+      // }}
+    },
   },
 });
 
@@ -134,5 +197,6 @@ export const {
   setMaleStudents,
   setFemaleStudents,
   setUnpaidStudents,
+  setProfileInfo,
 } = instituteSlice.actions;
 export default instituteSlice.reducer;

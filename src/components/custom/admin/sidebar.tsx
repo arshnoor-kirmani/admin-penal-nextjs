@@ -401,19 +401,23 @@ export default function Sidebar_() {
         <div className="size-full flex justify-center items-center flex-col gap-2">
           <Avatar className="size-14">
             <AvatarImage src={userInformation.logo} />
-              <AvatarFallback>
-                {userInformation.logo ? (
-                  <Skeleton className="size-full rounded-full" />
-                ) : (
-                  (() => {
-                    if (!userInformation.username) return null;
-                    const nameParts = userInformation.username.split(" ");
-                    const firstNameInitial = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() : "";
-                    const lastNameInitial = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() : "";
-                    return `${firstNameInitial}${lastNameInitial}`;
-                  })()
-                )}
-              </AvatarFallback>
+            <AvatarFallback>
+              {userInformation.logo ? (
+                <Skeleton className="size-full rounded-full" />
+              ) : (
+                (() => {
+                  if (!userInformation.username) return null;
+                  const nameParts = userInformation.username.split(" ");
+                  const firstNameInitial = nameParts[0]
+                    ? nameParts[0].charAt(0).toUpperCase()
+                    : "";
+                  const lastNameInitial = nameParts[1]
+                    ? nameParts[1].charAt(0).toUpperCase()
+                    : "";
+                  return `${firstNameInitial}${lastNameInitial}`;
+                })()
+              )}
+            </AvatarFallback>
           </Avatar>
 
           <h1>{userInformation.username}</h1>

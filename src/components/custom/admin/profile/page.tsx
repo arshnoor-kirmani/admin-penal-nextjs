@@ -1,10 +1,9 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useController, useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -48,20 +47,25 @@ import {
   XIcon,
   SaveIcon,
 } from "lucide-react";
-import { useAppSelector } from "@/hooks/custom/redux-hooks";
-import { InstituteInfo } from "@/lib/store/ReduxSlices/InstituteSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/custom/redux-hooks";
+import {
+  InstituteInfo,
+  setProfileInfo,
+} from "@/lib/store/ReduxSlices/InstituteSlice";
 import UserForm from "./fileUploade";
-import { useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import { set } from "mongoose";
+import axios from "axios";
+import { toast } from "sonner";
 
 // Schemas for each form
 const generalInfoSchema = z.object({
   logo: z.string(),
-  prfile_url: z.string(),
-  instituteName: z.string().min(1, "Institute name is required"),
-  instituteType: z.string().min(1, "Institute type is required"),
+  profile_url: z.string(),
+  institute_name: z.string().min(1, "Institute name is required"),
+  username: z.string().min(1, "Institute type is required"),
   institute_code: z.string(),
-  establishedYear: z
+  established_year: z
     .number()
     .min(1800, "Year must be 1800 or later")
     .max(new Date().getFullYear(), "Year cannot be in the future"),
@@ -96,28 +100,76 @@ const academicInfoSchema = z.object({
 const brandingSchema = z.object({});
 
 const settingsSchema = z.object({
-  instituteCode: z.string(),
+  short_name: z.string(),
   currency: z.string(),
   timezone: z.string(),
   workingHours: z.string(),
 });
+// =============================================================================================================
+function useUpdateProfile() {
+  const dispatch = useAppDispatch();
 
-function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
+  const updateProfile = async (
+    institute_code: string,
+    values: any,
+    formReset: any,
+    setFormDirty: React.Dispatch<SetStateAction<boolean>>
+  ) => {
+    try {
+      await axios
+        .post("/api/auth/set-institute-profile", {
+          institute_code: institute_code,
+          info: values,
+        })
+        .then((res) => {
+          dispatch(setProfileInfo(values));
+          setFormDirty(false);
+          formReset({ ...values });
+          toast.success("Profile Information Updated Successfully");
+        });
+    } catch (error) {
+      toast.error("Failed to update profile information");
+      console.error(error);
+    }
+  };
+
+  return updateProfile;
+}
+// =============================================================================================================
+function GeneralInfoForm({
+  // institute,
+  editDisabel,
+  setFormDirty,
+}: {
+  // institute: InstituteInfo;
+  editDisabel: boolean;
+  setFormDirty: React.Dispatch<SetStateAction<boolean>>;
+}) {
+  const institute = useAppSelector((state) => state.institute);
+  const UpdateProfileInformation = useUpdateProfile();
+  const [submitDisabel, setSubmitDisabel] = useState(false);
   const [logo_url, setLogo_url] = useState("");
   const [profile_url, setProfile_url] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  // if (!institute.identifier) return;
   const form = useForm<z.infer<typeof generalInfoSchema>>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
       logo: institute.logo,
-      prfile_url: institute.logo,
-      instituteName: institute.institute_name || "**************",
-      instituteType: institute.institute_type || "college",
+      profile_url: institute.logo,
+      institute_name: institute.institute_name || "**************",
+      username: institute.username || "",
       institute_code: institute.institute_code || "IMS-12345",
-      establishedYear: institute.established_year || 2002,
+      established_year: institute.information?.established_year || 2002,
       affiliation:
-        institute.institute_affiliation || "Affiliated to CBSE, UGC Approved",
+        institute.information?.affiliation ||
+        "Affiliated to CBSE, UGC Approved",
     },
   });
+  const {
+    formState: { isDirty },
+  } = form;
   async function UploadFile(files: FileList, uploadType: string) {
     console.log(files);
     console.log("file", files[0].webkitRelativePath);
@@ -128,8 +180,35 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
   }
   function onSubmit(values: z.infer<typeof generalInfoSchema>) {
     console.log(values);
+    // TODO::
+    values.logo =
+      "https://images.pexels.com/photos/6809665/pexels-photo-6809665.jpeg";
+    values.profile_url =
+      "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg";
+    UpdateProfileInformation(
+      institute.institute_code,
+      values,
+      form.reset,
+      setFormDirty
+    ).then(() => {
+      setSubmitDisabel(false);
+    });
   }
-
+  useEffect(() => {
+    setSubmitDisabel(isDirty);
+    setFormDirty(isDirty);
+  }, [isDirty]);
+  useEffect(() => {
+    form.reset({
+      logo: institute.logo,
+      profile_url: institute.logo,
+      institute_name: institute.institute_name || "",
+      username: institute.username || "",
+      institute_code: institute.institute_code || "",
+      affiliation: institute.information?.affiliation || "",
+      established_year: institute.information?.established_year,
+    });
+  }, [institute.identifier]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -157,6 +236,7 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                       className="absolute z-10 top-0 right-0 bg-primary text-muted  overflow-hidden rounded-full p-0.5 border-muted border-3 cursor-pointer"
                       onClick={() => {
                         setLogo_url("");
+                        form.resetField("logo");
                       }}
                     />
                   )}
@@ -176,13 +256,16 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                               {...rest}
                               id="logo-upload"
                               type="file"
+                              disabled={!editDisabel}
                               onChange={(e) => {
-                                if (e.target.files)
-                                  UploadFile(e.target?.files, "logo").then(
-                                    (url) => {
-                                      field.onChange(url);
-                                    }
-                                  );
+                                if (!e || !e.target.files || !e.target.files[0])
+                                  return;
+                                setLogoFile(e.target.files[0]);
+                                let url = URL.createObjectURL(
+                                  e.target.files[0]
+                                );
+                                setLogo_url(url);
+                                field.onChange(url);
                               }}
                             />
                           </FormControl>
@@ -211,6 +294,7 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                       className="absolute z-10 top-0 right-0 bg-primary text-muted  overflow-hidden rounded-full p-0.5 border-muted border-3 cursor-pointer"
                       onClick={() => {
                         setProfile_url("");
+                        form.resetField("profile_url");
                       }}
                     />
                   )}
@@ -219,7 +303,7 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                   <Label htmlFor="profile-file">Owner Profile Picture</Label>
                   <FormField
                     control={form.control}
-                    name="prfile_url"
+                    name="profile_url"
                     render={({ field }) => {
                       const { value, ...rest } = field;
                       return (
@@ -228,15 +312,18 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                           <FormControl>
                             <Input
                               {...rest}
+                              disabled={!editDisabel}
                               id="prfile_file"
                               type="file"
                               onChange={(e) => {
-                                if (e.target.files)
-                                  UploadFile(e.target?.files, "profile").then(
-                                    (url) => {
-                                      field.onChange(url);
-                                    }
-                                  );
+                                if (!e || !e.target.files || !e.target.files[0])
+                                  return;
+                                setProfileFile(e.target.files[0]);
+                                let url = URL.createObjectURL(
+                                  e.target.files[0]
+                                );
+                                setProfile_url(url);
+                                field.onChange(url);
                               }}
                             />
                           </FormControl>
@@ -254,12 +341,12 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="instituteName"
+                name="institute_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Institute Name</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -267,26 +354,13 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
               />
               <FormField
                 control={form.control}
-                name="instituteType"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Institute Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="school">School</SelectItem>
-                        <SelectItem value="college">College</SelectItem>
-                        <SelectItem value="coaching">Coaching</SelectItem>
-                        <SelectItem value="university">University</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Owner Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={!editDisabel} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -298,7 +372,7 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                   <FormItem>
                     <FormLabel>Institute Code</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled />
+                      <Input disabled {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -306,12 +380,17 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
               />
               <FormField
                 control={form.control}
-                name="establishedYear"
+                name="established_year"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Established Year</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input
+                        disabled={!editDisabel}
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -324,14 +403,24 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
                   <FormItem className="md:col-span-2">
                     <FormLabel>Affiliation / Accreditation</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <Button type="submit">Save Changes</Button>
+            {editDisabel && (
+              <Button
+                type="submit"
+                disabled={!submitDisabel}
+                onClick={() => {
+                  console.log(form.formState.isDirty);
+                }}
+              >
+                Save Changes
+              </Button>
+            )}
           </CardContent>
         </Card>
       </form>
@@ -339,26 +428,59 @@ function GeneralInfoForm({ institute }: { institute: InstituteInfo }) {
   );
 }
 
-function ContactInfoForm() {
+function ContactInfoForm({
+  institute,
+  editDisabel,
+  setFormDirty,
+}: {
+  institute: InstituteInfo;
+  editDisabel: boolean;
+  setFormDirty: React.Dispatch<SetStateAction<boolean>>;
+}) {
+  const UpdateProfileInformation = useUpdateProfile();
   const form = useForm<z.infer<typeof contactInfoSchema>>({
     resolver: zodResolver(contactInfoSchema),
     defaultValues: {
-      address: "123, Knowledge Park, Greater Noida",
-      city: "Greater Noida",
-      state: "Uttar Pradesh",
-      pincode: "201310",
-      country: "India",
-      landline: "0120-1234567",
-      mobile: "+91-9876543210",
-      email: "info@hopeinstitute.com",
-      website: "https://hopeinstitute.com",
+      address: institute?.information?.address || "",
+      city: institute?.information?.city || "",
+      state: institute?.information?.state || "",
+      pincode: institute?.information?.pincode || "",
+      country: institute?.information?.country || "",
+      landline: institute?.information?.landline || "",
+      mobile: institute?.information?.mobile || "",
+      email: institute?.information?.email || "",
+      website: institute?.information?.website || "",
     },
   });
-
+  const {
+    formState: { isDirty },
+  } = form;
+  // =======================================================================================================
   function onSubmit(values: z.infer<typeof contactInfoSchema>) {
     console.log(values);
+    UpdateProfileInformation(
+      institute.institute_code,
+      values,
+      form.reset,
+      setFormDirty
+    );
   }
-
+  useEffect(() => {
+    setFormDirty(isDirty);
+  }, [isDirty]);
+  useEffect(() => {
+    form.reset({
+      address: institute.information?.address || "",
+      city: institute.information?.city || "",
+      state: institute.information?.state || "",
+      pincode: institute.information?.pincode || "",
+      country: institute.information?.country || "",
+      landline: institute.information?.landline || "",
+      mobile: institute.information?.mobile || "",
+      email: institute.information?.email || "",
+      website: institute.information?.website || "",
+    });
+  }, [institute.identifier]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -378,7 +500,7 @@ function ContactInfoForm() {
                   <FormItem className="md:col-span-2">
                     <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -391,7 +513,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>City</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -404,7 +526,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>State</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -417,7 +539,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>Pin Code</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -430,7 +552,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>Country</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -443,7 +565,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>Contact Number (Landline)</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -456,7 +578,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>Mobile Number</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -469,7 +591,7 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>Email ID</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input disabled={!editDisabel} type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -482,14 +604,24 @@ function ContactInfoForm() {
                   <FormItem>
                     <FormLabel>Website URL</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <Button type="submit">Save Changes</Button>
+            {editDisabel && (
+              <Button
+                type="submit"
+                disabled={!isDirty}
+                onClick={() => {
+                  console.log(form.formState.isDirty);
+                }}
+              >
+                Save Changes
+              </Button>
+            )}
           </CardContent>
         </Card>
       </form>
@@ -522,7 +654,15 @@ function AcademicInfoForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 relative"
+      >
+        <div className="w-full h-full bg-muted/70 absolute top-0 left-0 flex items-center justify-center rounded-md z-10">
+          <h1 className="text-2xl font-bold text-accent-foreground">
+            Comming Soon...
+          </h1>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Academic Information</CardTitle>
@@ -745,21 +885,51 @@ function AcademicInfoForm() {
 //   );
 // }
 
-function SettingsForm() {
+function SettingsForm({
+  institute,
+  editDisabel,
+  setFormDirty,
+}: {
+  institute: InstituteInfo;
+  editDisabel: boolean;
+  setFormDirty: React.Dispatch<SetStateAction<boolean>>;
+}) {
+  const UpdateProfileInformation = useUpdateProfile();
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      instituteCode: "HGI",
-      currency: "inr",
-      timezone: "ist",
-      workingHours: "9:00 AM - 5:00 PM",
+      short_name: institute?.information?.short_name || "HGI",
+      currency: institute?.information?.currency || "inr",
+      timezone: institute?.information?.timezone || "ist",
+      workingHours:
+        institute?.information?.working_hours || "9:00 AM - 5:00 PM",
     },
   });
-
+  const {
+    formState: { isDirty },
+  } = form;
+  // =================================================================================================
   function onSubmit(values: z.infer<typeof settingsSchema>) {
     console.log(values);
+    UpdateProfileInformation(
+      institute.institute_code,
+      values,
+      form.reset,
+      setFormDirty
+    );
   }
-
+  // =================================================================================================
+  useEffect(() => {
+    setFormDirty(isDirty);
+  }, [isDirty]);
+  useEffect(() => {
+    form.reset({
+      currency: institute.information?.currency || "inr",
+      timezone: institute.information?.timezone || "ist",
+      workingHours: institute.information?.working_hours || "9:00 AM - 5:00 PM",
+      short_name: institute.information?.short_name || "HGI",
+    });
+  }, [institute.identifier]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -774,12 +944,12 @@ function SettingsForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="instituteCode"
+                name="short_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Institute Code / Short Name</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -792,6 +962,7 @@ function SettingsForm() {
                   <FormItem>
                     <FormLabel>Default Currency</FormLabel>
                     <Select
+                      disabled={!editDisabel}
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
@@ -817,6 +988,7 @@ function SettingsForm() {
                   <FormItem>
                     <FormLabel>Time Zone</FormLabel>
                     <Select
+                      disabled={!editDisabel}
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
@@ -845,21 +1017,35 @@ function SettingsForm() {
                   <FormItem>
                     <FormLabel>Institute Working Hours</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={!editDisabel} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="holiday-calendar">Holiday Calendar</Label>
-              <Input id="holiday-calendar" type="file" />
+              <Input
+                disabled={!editDisabel}
+                id="holiday-calendar"
+                type="file"
+              />
               <p className="text-xs text-muted-foreground">
                 Upload a .ics or .csv file for the holiday list.
               </p>
-            </div>
-            <Button type="submit">Save Changes</Button>
+            </div> */}
+            {editDisabel && (
+              <Button
+                type="submit"
+                disabled={!isDirty}
+                onClick={() => {
+                  console.log(form.formState.isDirty);
+                }}
+              >
+                Save Changes
+              </Button>
+            )}
           </CardContent>
         </Card>
       </form>
@@ -868,76 +1054,120 @@ function SettingsForm() {
 }
 
 function Profile() {
+  const [formDirty, setFormDirty] = useState(false);
   const [editDisabel, setEditDisabel] = useState(false);
   const InstituteInfo = useAppSelector((state) => state.institute);
+  console.log(InstituteInfo);
   return (
-    <div className="p-2 md:p-8 gap-3">
-      <Card className="my-4">
+    <div className="p-1 pt-0 md:p-8 gap-3">
+      <Card className="mb-4">
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
               <AvatarImage
-                src={"https://github.com/shadcn.png"}
+                src={InstituteInfo.profile_url}
+                className="object-cover "
                 alt="Profile"
               />
-              <AvatarFallback>SH</AvatarFallback>
+              <AvatarFallback>
+                {InstituteInfo.information.short_name || "LG"}
+              </AvatarFallback>
             </Avatar>
             <div className="grid gap-1">
               <h1 className="text-xl md:text-2xl font-bold">
-                Hope Group of Institute
+                {InstituteInfo.institute_name || ""}
               </h1>
-              <p className="text-sm text-muted-foreground">Arshnoor Kirmani</p>
+              <p className="text-sm text-muted-foreground">
+                {InstituteInfo.username || "Username"}
+              </p>
             </div>
           </div>
-          <Button variant="outline" className="hidden md:flex w-full md:w-auto">
-            <Edit className="mr-2 h-4 w-4" /> Edit Profile
-          </Button>
-        </CardHeader>
-        <CardFooter className="md:hidden">
-          <CardAction>
+          {!editDisabel && (
             <Button
               variant="outline"
-              className="w-full cursor-pointer"
-              onClick={() => setEditDisabel(true)}
+              className="hidden md:flex w-full md:w-auto cursor-pointer"
+              onClick={() => setEditDisabel((prev) => !prev)}
             >
-              {!editDisabel && (
-                <span>
-                  <Edit className="mr-2 h-4 w-4" /> Edit Profile
-                </span>
-              )}
-              {editDisabel && (
-                <span>
-                  <SaveIcon /> Save Changes
-                </span>
-              )}
+              <Edit className="mr-2 h-4 w-4" /> Edit Profile
             </Button>
-          </CardAction>
+          )}
+          {editDisabel && (
+            <Button
+              variant="outline"
+              className="hidden md:flex w-full md:w-auto cursor-pointer"
+              onClick={() => !formDirty && setEditDisabel((prev) => !prev)}
+            >
+              <SaveIcon className="mr-2 h-4 w-4" /> Save Changes
+            </Button>
+          )}
+        </CardHeader>
+        <CardFooter className="md:hidden">
+          <Button
+            variant="outline"
+            className="w-full cursor-pointer"
+            onClick={() => setEditDisabel(true)}
+          >
+            {!editDisabel && (
+              <span>
+                <Edit className="mr-2 h-4 w-4" /> Edit Profile
+              </span>
+            )}
+            {editDisabel && (
+              <span>
+                <SaveIcon /> Save Changes
+              </span>
+            )}
+          </Button>
         </CardFooter>
       </Card>
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-fit sm:grid-cols-3 gap-y-1 md:grid-cols-4 p-2">
-          <TabsTrigger className="p-2 cursor-pointer" value="general">
+          <TabsTrigger
+            className="p-2 cursor-pointer"
+            value="general"
+            disabled={formDirty}
+          >
             <Building2 className="mr-1 md:mr-2" /> General Info
           </TabsTrigger>
-          <TabsTrigger className="p-2 cursor-pointer" value="contact">
+          <TabsTrigger
+            className="p-2 cursor-pointer"
+            value="contact"
+            disabled={formDirty}
+          >
             <Contact className="mr-1 md:mr-2" /> Contact Info
           </TabsTrigger>
-          <TabsTrigger className="p-2 cursor-pointer" value="academic">
+          <TabsTrigger
+            className="p-2 cursor-pointer"
+            value="academic"
+            disabled={formDirty}
+          >
             <GraduationCap className="mr-1 md:mr-2" /> Academic Info
           </TabsTrigger>
           {/* <TabsTrigger className="p-2" value="branding">
             <FileText className="mr-1 md:mr-2" /> Documents & Branding
           </TabsTrigger> */}
-          <TabsTrigger className="p-2 cursor-pointer" value="settings">
+          <TabsTrigger
+            className="p-2 cursor-pointer"
+            value="settings"
+            disabled={formDirty}
+          >
             <Settings className="mr-1 md:mr-2" /> System Settings
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
-          <GeneralInfoForm institute={InstituteInfo} />
+          <GeneralInfoForm
+            setFormDirty={setFormDirty}
+            // institute={InstituteInfo}
+            editDisabel={editDisabel}
+          />
         </TabsContent>
         <TabsContent value="contact">
-          <ContactInfoForm />
+          <ContactInfoForm
+            setFormDirty={setFormDirty}
+            institute={InstituteInfo}
+            editDisabel={editDisabel}
+          />
         </TabsContent>
         <TabsContent value="academic">
           <AcademicInfoForm />
@@ -946,7 +1176,11 @@ function Profile() {
           <BrandingForm />
         </TabsContent> */}
         <TabsContent value="settings">
-          <SettingsForm />
+          <SettingsForm
+            setFormDirty={setFormDirty}
+            institute={InstituteInfo}
+            editDisabel={editDisabel}
+          />
         </TabsContent>
       </Tabs>
     </div>

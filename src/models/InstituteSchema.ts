@@ -35,6 +35,28 @@ export interface rules {
   show_teacher: boolean;
 }
 export interface Institute extends Document {
+  information: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+    landline: string;
+    mobile: string;
+    email: string;
+    website: string;
+    short_name: string;
+    currency: string;
+    timezone: string;
+    working_hours: string;
+    institute_type: string;
+    affiliation: string;
+    established_year: number;
+    institute_code: string;
+    institute_name: string;
+    logo: string;
+    profile_url: string;
+  };
   username: string;
   email: string;
   password: string;
@@ -58,12 +80,34 @@ export interface Institute extends Document {
 }
 
 const InstituteSchema = new Schema<Institute>({
+  information: {
+    address: { type: String, default: "" },
+    city: { type: String, default: "" },
+    state: { type: String, default: "" },
+    pincode: { type: String, default: "" },
+    country: { type: String, default: "" },
+    landline: { type: String, default: "" },
+    mobile: { type: String, default: "" },
+    email: { type: String, default: "" },
+    website: { type: String, default: "" },
+    short_name: { type: String, default: "" },
+    currency: { type: String, default: "" },
+    timezone: { type: String, default: "" },
+    working_hours: { type: String, default: "" },
+    institute_type: { type: String, default: "" },
+    affiliation: { type: String, default: "" },
+    established_year: { type: Number, default: 0 },
+    institute_code: { type: String, default: "" },
+    institute_name: { type: String, default: "" },
+    logo: { type: String, default: "" },
+    profile_url: { type: String, default: "" },
+  },
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   institute_name: { type: String, required: true, default: "" },
   institute_code: { type: String, required: true, unique: true },
-  institute_short_name: { type: String, required: true, default: "" },
+  institute_short_name: { type: String, default: "" },
   user_type: { type: String, required: true, default: "institute" },
   address: { type: String, default: "" },
   official_website: { type: String, default: "" },
