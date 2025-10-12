@@ -164,20 +164,18 @@ export const instituteSlice = createSlice({
         state.unpaid_student = [];
       }
     },
-    setProfileInfo: (state, action: PayloadAction<any>) => {
+    setProfileInfo: (state, action: PayloadAction<Partial<InstituteInfo>>) => {
       console.log("Profile Action", action.payload);
       const values = action.payload;
-      values.logo && (state.logo = values.logo);
-      values.profile_url && (state.profile_url = values.profile_url);
-      values.institute_name && (state.institute_name = values.institute_name);
-      values.institute_code && (state.institute_code = values.institute_code);
-      values.username && (state.username = values.username);
-
+      if (values.logo) state.logo = values.logo;
+      if (values.profile_url) state.profile_url = values.profile_url;
+      if (values.institute_name) state.institute_name = values.institute_name;
+      if (values.institute_code) state.institute_code = values.institute_code;
+      if (values.username) state.username = values.username;
       state.information = {
         ...state.information,
         ...values,
       };
-
       // state={
       //   ...state,
       //   logo:action.payload.logo,

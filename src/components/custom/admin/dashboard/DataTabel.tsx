@@ -48,9 +48,6 @@ import {
 } from "@/components/custom/utilis";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppSelector } from "@/hooks/custom/redux-hooks";
-import axios from "axios";
-import { useDispatch } from "react-redux";
-import { setUnpaidStudents } from "@/lib/store/ReduxSlices/InstituteSlice";
 import { Student } from "@/models/StudentsSchema";
 import {
   Empty,
@@ -209,25 +206,6 @@ export function DataTable({ isloading }: { isloading: boolean }) {
   const [rowSelection, setRowSelection] = React.useState({});
   // -==================================================================-
   const instituteInfo = useAppSelector((state) => state.institute);
-  const dispatch = useDispatch();
-
-  React.useEffect(() => {
-    if (!instituteInfo.identifier) return;
-    try {
-      axios
-        .get("/api/get-unpaid-student", {
-          params: { institute_id: instituteInfo.institute_id },
-        })
-        .then((res) => {
-          dispatch(setUnpaidStudents(res.data?.students ?? []));
-        })
-        .catch((err) => {
-          console.log("Error in fetching unpaid student", err);
-        });
-    } catch (err) {
-      console.log("Error in fetching unpaid student", err);
-    }
-  }, [instituteInfo.identifier, dispatch, instituteInfo.institute_id]);
 
   const tableData = React.useMemo(
     () => instituteInfo.unpaid_student || [],

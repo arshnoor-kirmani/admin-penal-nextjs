@@ -21,9 +21,11 @@ export default async function dbConnect(
     mongoose.connection.db?.databaseName !== String(Database_name)
   ) {
     console.log(
-      `Closing previous connection to ${mongoose.connection.db?.databaseName}`
+      `Closing previous connection to ${mongoose.connection.db?.databaseName}.......`
     );
-    await mongoose.connection.close();
+    await mongoose.connection
+      .close()
+      .then(() => console.log("Database closed"));
   }
 
   try {

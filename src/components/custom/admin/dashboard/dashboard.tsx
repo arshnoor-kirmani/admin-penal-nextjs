@@ -11,6 +11,7 @@ import { useAppSelector } from "@/hooks/custom/redux-hooks";
 import {
   InstituteInfo,
   setMaleStudents,
+  setUnpaidStudents,
 } from "@/lib/store/ReduxSlices/InstituteSlice";
 import {
   LibraryBigIcon,
@@ -35,7 +36,7 @@ export default function Dashboard({ session }: { session: Session }) {
   useEffect(() => {
     if (!instituteInfo.identifier) return;
     try {
-      setIsloading(true);
+      if (instituteInfo.male_student.length === 0) setIsloading(true);
       axios
         .get(`/api/get-gender-student`, {
           params: {
@@ -47,6 +48,16 @@ export default function Dashboard({ session }: { session: Session }) {
           if (!res.data.students) return;
           dispatch(setMaleStudents(res.data.students));
           setIsloading(false);
+          axios
+            .get("/api/get-unpaid-student", {
+              params: { institute_id: instituteInfo.institute_id },
+            })
+            .then((res) => {
+              dispatch(setUnpaidStudents(res.data?.students ?? []));
+            })
+            .catch((err) => {
+              console.log("Error in fetching unpaid student", err);
+            });
         })
         .catch((err) => {
           console.log("Error in fetching student gender", err);
@@ -55,10 +66,10 @@ export default function Dashboard({ session }: { session: Session }) {
       console.log("Error in fetching student gender", error);
     }
   }, [
-    instituteInfo.total_student,
     dispatch,
     instituteInfo.identifier,
     instituteInfo.institute_id,
+    instituteInfo.male_student,
   ]);
 
   if (!session && !instituteInfo.identifier) {
@@ -83,7 +94,11 @@ export default function Dashboard({ session }: { session: Session }) {
             <Card className="bg-transparent border-0 grid garid-cols-1 grid-rows-1 md:grid-cols-2 gap-4 py-4 md:gap-6 md:py-6">
               <ChartBarHorizontal
                 data={instituteInfo.monthly_student_enroll}
-                isloading={instituteInfo.identifier ? false : true}
+                isloading={
+                  instituteInfo.monthly_student_enroll.length !== 0
+                    ? false
+                    : true
+                }
               />
 
               <ChartPieLabel

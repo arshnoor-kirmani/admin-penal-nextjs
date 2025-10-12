@@ -13,27 +13,55 @@ export interface Course {
 }
 export interface rules {
   all: boolean;
+  // Dashboard
+  dashboard: boolean;
+  // Profile
+  profile_show: boolean;
   profile_edit: boolean;
+  // Messages
   send_message: boolean;
-  inbox_message: boolean;
+  inbox_show: boolean;
+  // User Management
+  users_show: boolean;
+  add_user: boolean;
+  edit_user: boolean;
+  delete_user: boolean;
+  // Settings
   website_setting: boolean;
+  account_setting: boolean;
+  password_change: boolean;
+  // Teacher Management
+  teachers_show: boolean;
   add_teacher: boolean;
   edit_teacher: boolean;
   delete_teacher: boolean;
-  salary_management: boolean;
+  // Student Management
+  students_show: boolean;
   add_student: boolean;
   edit_student: boolean;
   delete_student: boolean;
+  // Course Management
+  courses_show: boolean;
+  add_course: boolean;
+  edit_course: boolean;
+  delete_course: boolean;
+  // Finance
+  salary_management: boolean;
   fees_management: boolean;
-  result_permession: boolean;
-  dashboard: boolean;
-  settings: boolean;
-  manage_users: boolean;
-  add_user: boolean;
-  show_student: boolean;
-  attendance: boolean;
-  show_teacher: boolean;
+  add_fees: boolean;
+  edit_fees: boolean;
+  delete_fees: boolean;
+  // Academic Documents
+  result_show: boolean;
+  add_result: boolean;
+  edit_result: boolean;
+  delete_result: boolean;
+  attendance_show: boolean;
+  add_attendance: boolean;
+  edit_attendance: boolean;
+  delete_attendance: boolean;
 }
+
 export interface Institute extends Document {
   information: {
     address: string;
@@ -125,19 +153,43 @@ const InstituteSchema = new Schema<Institute>({
     type: Object,
     default: {
       all: true,
+      dashboard: true,
+      profile_show: true,
       profile_edit: true,
       send_message: true,
-      inbox_message: true,
+      inbox_show: true,
+      users_show: true,
+      add_user: true,
+      edit_user: true,
+      delete_user: true,
       website_setting: true,
+      teachers_show: true,
+      students_show: true,
+      courses_show: true,
+      fees_management: true,
+      result_show: true,
+      attendance_show: true,
+      account_setting: true,
+      password_change: true,
       add_teacher: true,
       edit_teacher: true,
       delete_teacher: true,
-      salary_management: true,
       add_student: true,
       edit_student: true,
       delete_student: true,
-      fees_management: true,
-      result_permession: true,
+      add_course: true,
+      edit_course: true,
+      delete_course: true,
+      salary_management: true,
+      add_fees: true,
+      edit_fees: true,
+      delete_fees: true,
+      add_result: true,
+      edit_result: true,
+      delete_result: true,
+      add_attendance: true,
+      edit_attendance: true,
+      delete_attendance: true,
     },
   },
 });

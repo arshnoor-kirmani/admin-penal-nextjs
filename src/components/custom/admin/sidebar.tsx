@@ -1,26 +1,46 @@
 "use client";
+
 import {
-  BoltIcon,
-  BookOpenIcon,
-  InboxIcon,
-  Layers2Icon,
-  UserCircleIcon,
-  UserPlus2Icon,
-  Settings,
-  Inbox,
-  User2,
   LucideHome,
+  User2,
   UserCircle,
+  UserPlus2Icon,
+  UserPlus,
   Receipt,
   Sheet,
   Book,
-  UserPlus,
-  LogIn,
+  BookOpen,
+  Settings,
+  Monitor,
+  Inbox,
+  BoltIcon,
+  UserCircleIcon,
+  Layers2Icon,
+  InboxIcon,
   LogOutIcon,
   User,
 } from "lucide-react";
+
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import axios from "axios";
+import Link from "next/link";
+import { toast } from "sonner";
+
+import { useAppDispatch, useAppSelector } from "@/hooks/custom/redux-hooks";
+import {
+  setInstituteInfo,
+  InstituteInfo,
+} from "@/lib/store/ReduxSlices/InstituteSlice";
+import {
+  setStudentInfo,
+  StudentInfo,
+} from "@/lib/store/ReduxSlices/StudentSlice";
+import {
+  setTeacherInfo,
+  TeacherInfo,
+} from "@/lib/store/ReduxSlices/TeacherSlice";
+
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +48,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSkeleton,
@@ -37,7 +56,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import axios from "axios";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import LogoutButton from "@/components/custom/logout-button";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,23 +68,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import LogoutButton from "@/components/custom/logout-button";
-import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/hooks/custom/redux-hooks";
-import {
-  InstituteInfo,
-  setInstituteInfo,
-} from "@/lib/store/ReduxSlices/InstituteSlice";
-import { toast } from "sonner";
-import {
-  setStudentInfo,
-  StudentInfo,
-} from "@/lib/store/ReduxSlices/StudentSlice";
-import {
-  setTeacherInfo,
-  TeacherInfo,
-} from "@/lib/store/ReduxSlices/TeacherSlice";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+// ===================== Navigation =====================
 const userNavigations: {
   label: string;
   navs_item: {
@@ -74,24 +80,34 @@ const userNavigations: {
   }[];
 }[] = [
   {
-    label: "User",
+    label: "Dashboard",
     navs_item: [
       {
         id: "dashboard",
-        title: "Dashboard",
+        title: "Overview",
         url: "dashboard",
         icon: LucideHome,
       },
-      { id: "profile_edit", title: "Profile", url: "profile", icon: User2 },
       {
-        id: "settings",
-        title: "Setting",
-        url: "settings",
-        icon: Settings,
+        id: "inbox_show",
+        title: "Inbox / Messages",
+        url: "inbox",
+        icon: Inbox,
       },
       {
-        id: "manage_users",
-        title: "Manage Users",
+        id: "profile_show",
+        title: "My Profile",
+        url: "profile",
+        icon: User2,
+      },
+    ],
+  },
+  {
+    label: "User Management",
+    navs_item: [
+      {
+        id: "users_show",
+        title: "All Users",
         url: "manage-users",
         icon: UserCircle,
       },
@@ -101,25 +117,13 @@ const userNavigations: {
         url: "add-user",
         icon: UserPlus2Icon,
       },
-      {
-        id: "website_setting",
-        title: "Website setting",
-        url: "website-setting",
-        icon: Settings,
-      },
-      {
-        id: "inbox_message",
-        title: "Inbox",
-        url: "inbox",
-        icon: Inbox,
-      },
     ],
   },
   {
-    label: "Student",
+    label: "Student Management",
     navs_item: [
       {
-        id: "show_student",
+        id: "students_show",
         title: "Student List",
         url: "students",
         icon: User2,
@@ -131,30 +135,24 @@ const userNavigations: {
         icon: UserPlus2Icon,
       },
       {
-        id: "fees_management",
-        title: "Fees Management",
-        url: "fees-management",
-        icon: Receipt,
-      },
-      {
-        id: "result_permession",
-        title: "Results Management",
-        url: "results",
-        icon: Sheet,
-      },
-      {
-        id: "attendance",
+        id: "attendance_show",
         title: "Attendance",
         url: "attendance",
         icon: Book,
       },
+      {
+        id: "result_show",
+        title: "Results",
+        url: "results",
+        icon: Sheet,
+      },
     ],
   },
   {
-    label: "Teacher",
+    label: "Teacher Management",
     navs_item: [
       {
-        id: "show_teacher",
+        id: "teacher_show",
         title: "Teacher List",
         url: "teachers",
         icon: UserCircle,
@@ -165,6 +163,28 @@ const userNavigations: {
         url: "new-teacher",
         icon: UserPlus,
       },
+    ],
+  },
+  {
+    label: "Academics",
+    navs_item: [
+      {
+        id: "courses_show",
+        title: "Courses",
+        url: "courses",
+        icon: BookOpen,
+      },
+    ],
+  },
+  {
+    label: "Finance",
+    navs_item: [
+      {
+        id: "fees_management",
+        title: "Fees Management",
+        url: "fees-management",
+        icon: Receipt,
+      },
       {
         id: "salary_management",
         title: "Salary Management",
@@ -173,11 +193,30 @@ const userNavigations: {
       },
     ],
   },
+  {
+    label: "Settings",
+    navs_item: [
+      {
+        id: "account_setting",
+        title: "Institute Account Settings",
+        url: "settings",
+        icon: Settings,
+      },
+      {
+        id: "website_setting",
+        title: "Website Settings",
+        url: "website-settings",
+        icon: Monitor,
+      },
+    ],
+  },
 ];
+
+// ===================== Main Sidebar =====================
 export default function Sidebar_() {
   const { data: session } = useSession({ required: true });
-  // TODO::::
   const dispatch = useAppDispatch();
+
   const [fetchingInfo, setFetchingInfo] = useState(true);
   const [userInformation, setUserInformation] = useState<
     InstituteInfo | StudentInfo | TeacherInfo
@@ -191,18 +230,17 @@ export default function Sidebar_() {
     user_type: "",
     institute_name: "",
     users: [],
-    rules: {
-      all_permissions: undefined,
-    },
+    rules: { all_permissions: undefined },
     institute_short_name: "",
   });
+
   const instituteInfo = useAppSelector((state) => state.institute);
   const studentInfo = useAppSelector((state) => state.student);
   const teacherInfo = useAppSelector((state) => state.teacher);
-  // ======================================================
-  // ======================================================
+
+  // ===================== Fetch User Info =====================
   useEffect(() => {
-    const fetchInstituteInfo = async (
+    const fetchInfo = async (
       identifier: string,
       institute_id: string,
       user_type: string
@@ -214,237 +252,148 @@ export default function Sidebar_() {
             ? "/api/auth/get-institute-info"
             : user_type === "student"
             ? "/api/auth/get-student-info"
-            : user_type === "teacher"
-            ? "/api/auth/get-teacher-info"
-            : "";
-        await axios
-          .post(URL, {
-            identifier,
-            institute_id,
-          })
-          .then((res) => {
-            // Set the institute info in Redux store
-            if (res.data && res.data.success && res.data.user) {
-              const user = res.data.user;
-              let data;
-              // Set Institute information in userInformatio Variable
-              if (user.user_type === "institute") {
-                data = dispatch(
-                  setInstituteInfo({
-                    institute_id: user._id,
-                    identifier: user.email || "Email",
-                    ...user,
-                  })
-                );
-              } else if (user.user_type === "student") {
-                data = dispatch(
-                  setStudentInfo({
-                    username: user.student_name || "Username",
-                    profile_url:
-                      user.profile_url || "https://github.com/shadcn.png",
-                    identifier: user.student_id || "Student ID",
-                    ...user,
-                  })
-                );
-              } else if (user.user_type === "teacher") {
-                data = dispatch(
-                  setTeacherInfo({
-                    username: user.teacher_name || "Username",
-                    profile_url:
-                      user.profile_url || "https://github.com/shadcn.png",
-                    identifier: user.teacher_id || "Teacher ID",
-                    ...user,
-                  })
-                );
-              }
-              if (data === undefined) {
-                toast.error("Somthing wrong.....");
-              }
-              setUserInformation({
-                ...data?.payload,
-              } as InstituteInfo & StudentInfo & TeacherInfo);
-            } else {
-              toast.error(
-                res.data?.message ||
-                  "Failed to load institute info. Please try again."
-              );
-            }
+            : "/api/auth/get-teacher-info";
 
-            setFetchingInfo(false);
-          })
-          .catch((err) => {
-            console.error("Error fetching institute info:", err);
-            setFetchingInfo(false);
-            toast.error("Something went wrong.....");
-          });
-      } catch (error) {
-        console.error("Error fetching institute info:", error);
+        const { data: res } = await axios.post(URL, {
+          identifier,
+          institute_id,
+        });
+
+        if (res?.success && res?.user) {
+          const user = res.user;
+          let data;
+          if (user.user_type === "institute") {
+            data = dispatch(
+              setInstituteInfo({
+                institute_id: user._id,
+                identifier: user.email || "Email",
+                ...user,
+              })
+            );
+          } else if (user.user_type === "student") {
+            data = dispatch(
+              setStudentInfo({
+                username: user.student_name || "Username",
+                profile_url:
+                  user.profile_url || "https://github.com/shadcn.png",
+                identifier: user.student_id || "Student ID",
+                ...user,
+              })
+            );
+          } else {
+            data = dispatch(
+              setTeacherInfo({
+                username: user.teacher_name || "Username",
+                profile_url:
+                  user.profile_url || "https://github.com/shadcn.png",
+                identifier: user.teacher_id || "Teacher ID",
+                ...user,
+              })
+            );
+          }
+          setUserInformation(
+            data?.payload as InstituteInfo | StudentInfo | TeacherInfo
+          );
+        } else toast.error(res?.message || "Failed to load user info");
+      } catch (err) {
+        console.error(err);
+        toast.error("Something went wrong...");
+      } finally {
+        setFetchingInfo(false);
       }
     };
+
     if (!session) return;
-    if (session?.identifier === userInformation.identifier) return;
-    if (!!userInformation.identifier) {
+    const { identifier, user_type, institute_id } = session;
+    if (!identifier || !user_type || !institute_id) {
+      toast.error("Invalid session data. Please re-login.");
       return;
     }
-    const Promis = new Promise(async (resolve) => {
-      const identifier = session.identifier;
-      const user_type = session.user_type;
-      const intitute_id = session.institute_id || "";
-      if (!identifier || !user_type || !intitute_id) {
-        toast.error("Invalid session data. Please log in again.");
-        return;
-      }
-      if (userInformation.identifier === identifier) return;
-      if (
-        user_type === "institute" &&
-        instituteInfo.identifier === identifier
-      ) {
-        setUserInformation(instituteInfo);
-        setFetchingInfo(false);
-        return;
-      } else if (
-        user_type === "student" &&
-        studentInfo.identifier === identifier
-      ) {
-        setUserInformation(studentInfo);
-        setFetchingInfo(false);
-        return;
-      } else if (
-        user_type === "teacher" &&
-        teacherInfo.identifier === identifier
-      ) {
-        setUserInformation(teacherInfo);
-        setFetchingInfo(false);
-        return;
-      }
-      await fetchInstituteInfo(identifier, intitute_id, user_type).then(
-        (result) => {
-          resolve(result);
-        },
-        (error) => {
-          console.error("Error in fetchInstituteInfo:", error);
-          toast.error("Failed to fetch institute info.");
-          resolve(null);
-        }
+
+    // use cached redux if available
+    if (
+      (user_type === "institute" && instituteInfo.identifier === identifier) ||
+      (user_type === "student" && studentInfo.identifier === identifier) ||
+      (user_type === "teacher" && teacherInfo.identifier === identifier)
+    ) {
+      setUserInformation(
+        user_type === "institute"
+          ? instituteInfo
+          : user_type === "student"
+          ? studentInfo
+          : teacherInfo
       );
-    });
-    toast.promise(Promis, {
-      loading: "Loading institute info...",
-      success: "Institute info loaded",
-      error: "Error loading institute info",
-    });
-  }, [
-    session,
-    instituteInfo,
-    studentInfo,
-    teacherInfo,
-    userInformation.identifier,
-    dispatch,
-  ]);
+      setFetchingInfo(false);
+      return;
+    }
+
+    fetchInfo(identifier, institute_id, user_type);
+  }, [session, dispatch, instituteInfo, studentInfo, teacherInfo]);
+
+  // ===================== Loading Skeleton =====================
   if (fetchingInfo) {
     return (
-      <Sidebar side="left" variant="floating" id="sidebar-skeleton">
-        <SidebarHeader className="">
-          <div className="size-full flex justify-center items-center flex-col gap-2">
+      <Sidebar side="left" variant="floating">
+        <SidebarHeader>
+          <div className="flex flex-col items-center gap-2">
             <Skeleton className="size-14 rounded-full" />
-
             <Skeleton className="h-6 w-32" />
           </div>
         </SidebarHeader>
         <SidebarContent>
-          {" "}
           <SidebarGroup>
             <SidebarMenuSkeleton />
-            <SidebarMenuSub>
-              <SidebarMenuSubItem>
-                <SidebarMenuSkeleton showIcon />
-                <SidebarMenuSkeleton showIcon />
-                <SidebarMenuSkeleton showIcon />
-              </SidebarMenuSubItem>
-            </SidebarMenuSub>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarMenuSkeleton />
-            <SidebarMenuSub>
-              <SidebarMenuSubItem>
-                <SidebarMenuSkeleton showIcon />
-                <SidebarMenuSkeleton showIcon />
-              </SidebarMenuSubItem>
-            </SidebarMenuSub>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarMenuSkeleton />
-            <SidebarMenuSub>
-              <SidebarMenuSubItem>
-                <SidebarMenuSkeleton showIcon />
-                <SidebarMenuSkeleton showIcon />
-              </SidebarMenuSubItem>
-            </SidebarMenuSub>
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="border-t">
-          <SidebarMenu>
-            <SidebarMenuItem className="flex  gap-2 justify-between">
-              <Skeleton className="size-10 rounded-full" />
-
-              <LogoutButton />
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <SidebarMenuItem className="flex justify-between gap-2">
+            <Skeleton className="size-10 rounded-full" />
+            <LogoutButton />
+          </SidebarMenuItem>
         </SidebarFooter>
       </Sidebar>
     );
   }
+
+  // ===================== Render Sidebar =====================
   return (
     <Sidebar side="left" variant="floating">
       <SidebarHeader>
-        {" "}
-        <div className="size-full flex justify-center items-center flex-col gap-2">
+        <div className="flex flex-col items-center gap-2">
           <Avatar className="size-14">
             <AvatarImage src={userInformation.logo} />
             <AvatarFallback>
-              {userInformation.logo ? (
-                <Skeleton className="size-full rounded-full" />
-              ) : (
-                (() => {
-                  if (!userInformation.username) return null;
-                  const nameParts = userInformation.username.split(" ");
-                  const firstNameInitial = nameParts[0]
-                    ? nameParts[0].charAt(0).toUpperCase()
-                    : "";
-                  const lastNameInitial = nameParts[1]
-                    ? nameParts[1].charAt(0).toUpperCase()
-                    : "";
-                  return `${firstNameInitial}${lastNameInitial}`;
-                })()
-              )}
+              {userInformation.username
+                ?.split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
             </AvatarFallback>
           </Avatar>
-
-          <h1>{userInformation.username}</h1>
+          <h1 className="text-sm font-medium">{userInformation.username}</h1>
         </div>
       </SidebarHeader>
-      <SidebarContent className="">
+
+      <SidebarContent>
         <ScrollArea className="h-full px-1 w-full rounded-md">
-          {userNavigations.map((item) => {
-            if (!item) return;
-            const visibelNav = item.navs_item.filter(
-              (navItem) =>
+          {userNavigations.map((group) => {
+            const visibleNavs = group.navs_item.filter(
+              (item) =>
                 userInformation.rules.all_permissions ||
-                userInformation.rules[navItem.id] ||
-                navItem.id === "dashboard" ||
-                userInformation.user_type === "institute" ||
-                userInformation.user_type === "admin" ||
-                userInformation.user_type === "user"
+                userInformation.rules[item.id] ||
+                item.id === "dashboard" ||
+                ["institute", "admin", "user"].includes(
+                  userInformation.user_type
+                )
             );
+
             return (
-              visibelNav.length > 0 && (
-                <SidebarGroup key={item.label}>
-                  <SidebarGroupLabel className="text-sm h-6 ">
-                    {item.label}
-                  </SidebarGroupLabel>
+              visibleNavs.length > 0 && (
+                <SidebarGroup key={group.label}>
+                  <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
                   <SidebarMenuSub>
-                    {visibelNav.map((navItem) => (
-                      <SidebarMenuSubItem key={navItem.title}>
+                    {visibleNavs.map((navItem) => (
+                      <SidebarMenuSubItem key={navItem.id}>
                         <SidebarMenuButton
                           asChild
                           aria-disabled={
@@ -458,7 +407,7 @@ export default function Sidebar_() {
                           }
                         >
                           <Link href={navItem.url}>
-                            <navItem.icon />
+                            <navItem.icon className="size-4" />
                             <span>{navItem.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -471,24 +420,23 @@ export default function Sidebar_() {
           })}
         </ScrollArea>
       </SidebarContent>
-      {/*============================== Footer===================================== */}
+
       <SidebarFooter className="border-t">
-        <SidebarMenu>
-          <SidebarMenuItem className="flex  gap-2 justify-between">
-            {" "}
-            <ProfileIcon
-              profile_url={userInformation.profile_url}
-              username={userInformation.username}
-              identifier={userInformation.identifier}
-              user_type={userInformation.user_type}
-            />
-            <LogoutButton />
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <SidebarMenuItem className="flex justify-between items-center gap-2">
+          <ProfileIcon
+            profile_url={userInformation.profile_url}
+            username={userInformation.username}
+            identifier={userInformation.identifier}
+            user_type={userInformation.user_type}
+          />
+          <LogoutButton />
+        </SidebarMenuItem>
       </SidebarFooter>
     </Sidebar>
   );
 }
+
+// ===================== Profile Icon Dropdown =====================
 export function ProfileIcon({
   profile_url,
   username,
@@ -503,8 +451,8 @@ export function ProfileIcon({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuButton className="size-fit relative">
-          <Avatar className="size-8" aria-setsize={10}>
+        <SidebarMenuButton className="relative">
+          <Avatar className="size-8">
             <AvatarImage src={profile_url} />
             <AvatarFallback>
               {profile_url ? (
@@ -513,141 +461,59 @@ export function ProfileIcon({
                 <User size={15} />
               )}
             </AvatarFallback>
-            {/* TODO: Skeleton for Avatar Image */}
           </Avatar>
         </SidebarMenuButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="max-w-64 ml-4"
-        align="center"
-        sideOffset={7}
-      >
-        <DropdownMenuLabel className="flex min-w-0 flex-col">
-          <span className="text-foreground truncate text-sm font-medium text-center">
-            {username}
-          </span>
-          <span className="text-muted-foreground truncate text-xs font-normal">
+
+      <DropdownMenuContent className="max-w-64 ml-4" align="center">
+        <DropdownMenuLabel className="flex flex-col items-center">
+          <span className="truncate text-sm font-medium">{username}</span>
+          <span className="text-muted-foreground truncate text-xs">
             {identifier}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+
         <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/account-center">
+              <BoltIcon size={16} className="opacity-60" />
+              <span>Account Center</span>
+            </Link>
+          </DropdownMenuItem>
+
           {user_type === "institute" && (
-            <>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/account-center">
-                  <BoltIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Account Center</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/deleted-users">
-                  <UserCircleIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span className="text-xs">Deleted Students, Teachers</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/login-activity">
-                  <InboxIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Login Activity</span>
-                </Link>
-              </DropdownMenuItem>
-            </>
+            <DropdownMenuItem asChild>
+              <Link href="/deleted-users">
+                <UserCircleIcon size={16} className="opacity-60" />
+                <span>Deleted Users</span>
+              </Link>
+            </DropdownMenuItem>
           )}
-          {user_type === "student" && (
-            <>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/account-center">
-                  <BoltIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Account Center</span>
-                </Link>
-              </DropdownMenuItem>
 
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/student-guide">
-                  <BookOpenIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Student Guide</span>
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/login-activity">
-                  <InboxIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Login Activity</span>
-                </Link>
-              </DropdownMenuItem>
-            </>
-          )}
           {user_type === "teacher" && (
-            <>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/account-center">
-                  <BoltIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Account Center</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/my-classes">
-                  <Layers2Icon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>My Classes</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/teaching-guides">
-                  <BookOpenIcon
-                    size={16}
-                    className="opacity-60"
-                    aria-hidden="true"
-                  />
-                  <span>Teaching Guides</span>
-                </Link>
-              </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/my-classes">
+                <Layers2Icon size={16} className="opacity-60" />
+                <span>My Classes</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
 
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link href="/login-activity">
-                  <LogIn size={16} className="opacity-60" aria-hidden="true" />
-                  <span>Login Activity</span>
-                </Link>
-              </DropdownMenuItem>
-            </>
+          {user_type !== "admin" && (
+            <DropdownMenuItem asChild>
+              <Link href="/login-activity">
+                <InboxIcon size={16} className="opacity-60" />
+                <span>Login Activity</span>
+              </Link>
+            </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />{" "}
-        <div className="mx-auto flex justify-center items-center gap-4">
+
+        <DropdownMenuSeparator />
+        <div className="flex justify-center items-center">
           <LogoutButton variant="ghost">
-            <div className="ml-auto flex justify-center items-center gap-4">
+            <div className="flex items-center gap-2">
               <span>Logout</span>
               <LogOutIcon />
             </div>

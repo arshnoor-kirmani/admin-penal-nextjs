@@ -203,7 +203,12 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-
+  pages: {
+    signIn: "/", // Path to your custom login page
+    // You can also customize other pages like signOut, error, etc.
+    // signOut: '/auth/logout',
+    error: "/",
+  },
   callbacks: {
     // async signIn({ user, account, profile, email, credentials }) {
     //   return true;

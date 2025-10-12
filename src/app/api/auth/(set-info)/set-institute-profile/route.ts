@@ -1,6 +1,6 @@
 import dbConnect from "@/lib/DatabaseConnect";
 import InstituteModel from "@/models/InstituteSchema";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const { institute_code, info } = await req.json();
@@ -16,12 +16,12 @@ export async function POST(req: Request) {
     if (!institute) {
       throw new Error("Institute not found");
     }
-    info.username && institute.set({ username: info.username });
-    info.institute_name &&
+    if (!!info.username) institute.set({ username: info.username });
+    if (!!info.institute_name)
       institute.set({ institute_name: info.institute_name });
-    info.logo && institute.set({ logo: info.logo });
-    info.profile_url && institute.set({ profile_url: info.profile_url });
-    info.institute_code &&
+    if (!!info.logo) institute.set({ logo: info.logo });
+    if (!!info.profile_url) institute.set({ profile_url: info.profile_url });
+    if (!!info.institute_code)
       institute.set({ institute_code: info.institute_code });
 
     institute.information = {
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
     console.log("Update Institute", institute);
     await institute.save();
     return NextResponse.json({ success: true });
-  } catch (error) {}
-  return new Response("Hello World");
+  } catch (error) {
+    throw new Error("Internal Server Error", { cause: error });
+  }
 }

@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const Database_name = searchParams.get("institute_id");
     const gender = searchParams.get("gender");
-
+    console.log("Get :: Params", Database_name, gender);
     if (!Database_name) {
       return NextResponse.json(
         { message: "Missing institute_id parameter" },
@@ -15,10 +15,7 @@ export async function GET(req: Request) {
       );
     }
 
-    await dbConnect(String(Database_name)).catch((error) => {
-      console.error("Failed to connect to database:", error);
-      throw new Error("Database connection failed");
-    });
+    await dbConnect(String(Database_name));
     const students = await StudentModel.aggregate([{ $match: { gender } }]);
     if (!students) {
       return NextResponse.json(

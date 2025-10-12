@@ -1,6 +1,11 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useController, useFieldArray, useForm } from "react-hook-form";
+import {
+  FieldValues,
+  useFieldArray,
+  useForm,
+  UseFormReset,
+} from "react-hook-form";
 import * as z from "zod";
 import {
   Card,
@@ -25,7 +30,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -37,13 +41,9 @@ import {
   Contact,
   GraduationCap,
   Settings,
-  FileText,
-  Upload,
   PlusCircle,
   Trash2,
   Edit,
-  XCircle,
-  X,
   XIcon,
   SaveIcon,
 } from "lucide-react";
@@ -52,9 +52,7 @@ import {
   InstituteInfo,
   setProfileInfo,
 } from "@/lib/store/ReduxSlices/InstituteSlice";
-import UserForm from "./fileUploade";
 import React, { SetStateAction, useEffect, useState } from "react";
-import { set } from "mongoose";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -97,7 +95,7 @@ const academicInfoSchema = z.object({
   currentStrength: z.number(),
 });
 
-const brandingSchema = z.object({});
+// const brandingSchema = z.object({});
 
 const settingsSchema = z.object({
   short_name: z.string(),
@@ -109,11 +107,11 @@ const settingsSchema = z.object({
 function useUpdateProfile() {
   const dispatch = useAppDispatch();
 
-  const updateProfile = async (
+  const updateProfile = async <T extends FieldValues>(
     institute_code: string,
-    values: any,
-    formReset: any,
-    setFormDirty: React.Dispatch<SetStateAction<boolean>>
+    values: T,
+    formReset: UseFormReset<T>,
+    setFormDirty: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
     try {
       await axios
@@ -121,7 +119,8 @@ function useUpdateProfile() {
           institute_code: institute_code,
           info: values,
         })
-        .then((res) => {
+        .then(() => {
+          if (!values) throw new Error("Failed to update profile information");
           dispatch(setProfileInfo(values));
           setFormDirty(false);
           formReset({ ...values });
@@ -170,10 +169,10 @@ function GeneralInfoForm({
   const {
     formState: { isDirty },
   } = form;
-  async function UploadFile(files: FileList, uploadType: string) {
-    console.log(files);
-    console.log("file", files[0].webkitRelativePath);
-    const url = URL.createObjectURL(files[0]);
+  async function UploadFile(file: File, uploadType: string) {
+    console.log(file);
+    console.log("file", file.webkitRelativePath);
+    const url = URL.createObjectURL(file);
     if (uploadType === "logo") setLogo_url(url);
     if (uploadType === "profile") setProfile_url(url);
     return url;
@@ -181,6 +180,8 @@ function GeneralInfoForm({
   function onSubmit(values: z.infer<typeof generalInfoSchema>) {
     console.log(values);
     // TODO::
+    if (logoFile) UploadFile(logoFile, "logo");
+    if (profileFile) UploadFile(profileFile, "profile");
     values.logo =
       "https://images.pexels.com/photos/6809665/pexels-photo-6809665.jpeg";
     values.profile_url =
@@ -197,7 +198,7 @@ function GeneralInfoForm({
   useEffect(() => {
     setSubmitDisabel(isDirty);
     setFormDirty(isDirty);
-  }, [isDirty]);
+  }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
       logo: institute.logo,
@@ -208,7 +209,16 @@ function GeneralInfoForm({
       affiliation: institute.information?.affiliation || "",
       established_year: institute.information?.established_year,
     });
-  }, [institute.identifier]);
+  }, [
+    institute.identifier,
+    form,
+    institute.logo,
+    institute.institute_name,
+    institute.username,
+    institute.institute_code,
+    institute.information?.affiliation,
+    institute.information?.established_year,
+  ]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -216,7 +226,7 @@ function GeneralInfoForm({
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
             <CardDescription>
-              Manage your institute's basic details.
+              Manage your institute&apos;s basic details.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -247,7 +257,7 @@ function GeneralInfoForm({
                     control={form.control}
                     name="logo"
                     render={({ field }) => {
-                      const { value, ...rest } = field;
+                      const { value: _value, ...rest } = field;
                       return (
                         <FormItem>
                           {/* <FormLabel>Institute Name</FormLabel> */}
@@ -259,9 +269,9 @@ function GeneralInfoForm({
                               disabled={!editDisabel}
                               onChange={(e) => {
                                 if (!e || !e.target.files || !e.target.files[0])
-                                  return;
+                                  return _value;
                                 setLogoFile(e.target.files[0]);
-                                let url = URL.createObjectURL(
+                                const url = URL.createObjectURL(
                                   e.target.files[0]
                                 );
                                 setLogo_url(url);
@@ -317,9 +327,9 @@ function GeneralInfoForm({
                               type="file"
                               onChange={(e) => {
                                 if (!e || !e.target.files || !e.target.files[0])
-                                  return;
+                                  return value;
                                 setProfileFile(e.target.files[0]);
-                                let url = URL.createObjectURL(
+                                const url = URL.createObjectURL(
                                   e.target.files[0]
                                 );
                                 setProfile_url(url);
@@ -467,7 +477,7 @@ function ContactInfoForm({
   }
   useEffect(() => {
     setFormDirty(isDirty);
-  }, [isDirty]);
+  }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
       address: institute.information?.address || "",
@@ -480,7 +490,19 @@ function ContactInfoForm({
       email: institute.information?.email || "",
       website: institute.information?.website || "",
     });
-  }, [institute.identifier]);
+  }, [
+    institute.identifier,
+    form,
+    institute.information?.address,
+    institute.information?.city,
+    institute.information?.state,
+    institute.information?.pincode,
+    institute.information?.country,
+    institute.information?.landline,
+    institute.information?.mobile,
+    institute.information?.email,
+    institute.information?.website,
+  ]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -488,7 +510,7 @@ function ContactInfoForm({
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
             <CardDescription>
-              Update your institute's contact details.
+              Update your institute&apos;s contact details.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -921,7 +943,7 @@ function SettingsForm({
   // =================================================================================================
   useEffect(() => {
     setFormDirty(isDirty);
-  }, [isDirty]);
+  }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
       currency: institute.information?.currency || "inr",
@@ -929,7 +951,14 @@ function SettingsForm({
       workingHours: institute.information?.working_hours || "9:00 AM - 5:00 PM",
       short_name: institute.information?.short_name || "HGI",
     });
-  }, [institute.identifier]);
+  }, [
+    institute.identifier,
+    form,
+    institute.information?.currency,
+    institute.information?.timezone,
+    institute.information?.working_hours,
+    institute.information?.short_name,
+  ]);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
