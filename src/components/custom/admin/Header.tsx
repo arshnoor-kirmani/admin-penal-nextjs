@@ -35,12 +35,12 @@ export function Header({ user_type }: { user_type: string }) {
   console.log(navigationLinks);
   return (
     <header className="border-b px-4 md:px-6 sticky top-2 right-0 z-10 bg-primary-foreground rounded-2xl">
-      <div className="flex h-12 items-center justify-between gap-4">
+      <div className="flex h-12 items-center justify-between gap-4 ">
         <SidebarTrigger size="icon" />
         <Separator orientation="vertical" />
         <BreadCrumb navigationLinks={navigationLinks} />
         {/* Right side */}
-        <div className="flex flex-1 items-center justify-end gap-4">
+        <div className="flex flex-1 items-center justify-end gap-4 ">
           <div className="flex items-center gap-2">
             {/* Messages */}
             <Button

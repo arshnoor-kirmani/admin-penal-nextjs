@@ -48,6 +48,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSkeleton,
@@ -240,7 +241,7 @@ export default function Sidebar_() {
 
   // ===================== Fetch User Info =====================
   useEffect(() => {
-    const fetchInfo = async (
+    const fetchInstituteInfo = async (
       identifier: string,
       institute_id: string,
       user_type: string
@@ -252,104 +253,175 @@ export default function Sidebar_() {
             ? "/api/auth/get-institute-info"
             : user_type === "student"
             ? "/api/auth/get-student-info"
-            : "/api/auth/get-teacher-info";
-
-        const { data: res } = await axios.post(URL, {
-          identifier,
-          institute_id,
-        });
-
-        if (res?.success && res?.user) {
-          const user = res.user;
-          let data;
-          if (user.user_type === "institute") {
-            data = dispatch(
-              setInstituteInfo({
-                institute_id: user._id,
-                identifier: user.email || "Email",
-                ...user,
-              })
-            );
-          } else if (user.user_type === "student") {
-            data = dispatch(
-              setStudentInfo({
-                username: user.student_name || "Username",
-                profile_url:
-                  user.profile_url || "https://github.com/shadcn.png",
-                identifier: user.student_id || "Student ID",
-                ...user,
-              })
-            );
-          } else {
-            data = dispatch(
-              setTeacherInfo({
-                username: user.teacher_name || "Username",
-                profile_url:
-                  user.profile_url || "https://github.com/shadcn.png",
-                identifier: user.teacher_id || "Teacher ID",
-                ...user,
-              })
-            );
-          }
-          setUserInformation(
-            data?.payload as InstituteInfo | StudentInfo | TeacherInfo
-          );
-        } else toast.error(res?.message || "Failed to load user info");
-      } catch (err) {
-        console.error(err);
-        toast.error("Something went wrong...");
-      } finally {
-        setFetchingInfo(false);
+            : user_type === "teacher"
+            ? "/api/auth/get-teacher-info"
+            : "";
+        await axios
+          .post(URL, {
+            identifier,
+            institute_id,
+          })
+          .then((res) => {
+            // Set the institute info in Redux store
+            if (res.data && res.data.success && res.data.user) {
+              const user = res.data.user;
+              let data;
+              // Set Institute information in userInformatio Variable
+              if (user.user_type === "institute") {
+                data = dispatch(
+                  setInstituteInfo({
+                    institute_id: user._id,
+                    identifier: user.email || "Email",
+                    ...user,
+                  })
+                );
+              } else if (user.user_type === "student") {
+                data = dispatch(
+                  setStudentInfo({
+                    username: user.student_name || "Username",
+                    profile_url:
+                      user.profile_url || "https://github.com/shadcn.png",
+                    identifier: user.student_id || "Student ID",
+                    ...user,
+                  })
+                );
+              } else if (user.user_type === "teacher") {
+                data = dispatch(
+                  setTeacherInfo({
+                    username: user.teacher_name || "Username",
+                    profile_url:
+                      user.profile_url || "https://github.com/shadcn.png",
+                    identifier: user.teacher_id || "Teacher ID",
+                    ...user,
+                  })
+                );
+              }
+              if (data === undefined) {
+                toast.error("Somthing wrong.....");
+              }
+              setUserInformation({
+                ...data?.payload,
+              } as InstituteInfo & StudentInfo & TeacherInfo);
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching institute info:", err);
+            toast.error("Something went wrong.....");
+          })
+          .finally(() => {
+            setFetchingInfo(false);
+          });
+      } catch (error) {
+        console.error("Error fetching institute info:", error);
       }
     };
-
     if (!session) return;
-    const { identifier, user_type, institute_id } = session;
-    if (!identifier || !user_type || !institute_id) {
-      toast.error("Invalid session data. Please re-login.");
+    if (session?.identifier === userInformation.identifier) return;
+    if (!!userInformation.identifier) {
       return;
     }
-
-    // use cached redux if available
-    if (
-      (user_type === "institute" && instituteInfo.identifier === identifier) ||
-      (user_type === "student" && studentInfo.identifier === identifier) ||
-      (user_type === "teacher" && teacherInfo.identifier === identifier)
-    ) {
-      setUserInformation(
-        user_type === "institute"
-          ? instituteInfo
-          : user_type === "student"
-          ? studentInfo
-          : teacherInfo
+    const Promis = new Promise(async (resolve) => {
+      const { identifier, user_type, institute_id } = session;
+      if (!identifier || !user_type || !institute_id) {
+        toast.error("Invalid session data. Please log in again.");
+        return;
+      }
+      if (userInformation.identifier === identifier) return;
+      if (
+        user_type === "institute" &&
+        instituteInfo.identifier === identifier
+      ) {
+        setUserInformation(instituteInfo);
+        setFetchingInfo(false);
+        return;
+      } else if (
+        user_type === "student" &&
+        studentInfo.identifier === identifier
+      ) {
+        setUserInformation(studentInfo);
+        setFetchingInfo(false);
+        return;
+      } else if (
+        user_type === "teacher" &&
+        teacherInfo.identifier === identifier
+      ) {
+        setUserInformation(teacherInfo);
+        setFetchingInfo(false);
+        return;
+      }
+      await fetchInstituteInfo(identifier, institute_id, user_type).then(
+        (result) => {
+          resolve(result);
+        },
+        (error) => {
+          console.error("Error in fetchInstituteInfo:", error);
+          toast.error("Failed to fetch institute info.");
+          resolve(null);
+        }
       );
-      setFetchingInfo(false);
-      return;
-    }
-
-    fetchInfo(identifier, institute_id, user_type);
-  }, [session, dispatch, instituteInfo, studentInfo, teacherInfo]);
-
+    });
+    toast.promise(Promis, {
+      loading: "Loading institute info...",
+      success: "Institute info loaded",
+      error: "Error loading institute info",
+    });
+  }, [
+    session,
+    instituteInfo,
+    studentInfo,
+    teacherInfo,
+    userInformation.identifier,
+    dispatch,
+  ]);
   // ===================== Loading Skeleton =====================
   if (fetchingInfo) {
     return (
-      <Sidebar side="left" variant="floating">
-        <SidebarHeader>
-          <div className="flex flex-col items-center gap-2">
+      <Sidebar side="left" variant="floating" id="sidebar-skeleton">
+        <SidebarHeader className="">
+          <div className="size-full flex justify-center items-center flex-col gap-2">
             <Skeleton className="size-14 rounded-full" />
+
             <Skeleton className="h-6 w-32" />
           </div>
         </SidebarHeader>
         <SidebarContent>
+          {" "}
           <SidebarGroup>
             <SidebarMenuSkeleton />
+            <SidebarMenuSub>
+              <SidebarMenuSubItem>
+                <SidebarMenuSkeleton showIcon />
+                <SidebarMenuSkeleton showIcon />
+                <SidebarMenuSkeleton showIcon />
+              </SidebarMenuSubItem>
+            </SidebarMenuSub>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarMenuSkeleton />
+            <SidebarMenuSub>
+              <SidebarMenuSubItem>
+                <SidebarMenuSkeleton showIcon />
+                <SidebarMenuSkeleton showIcon />
+              </SidebarMenuSubItem>
+            </SidebarMenuSub>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarMenuSkeleton />
+            <SidebarMenuSub>
+              <SidebarMenuSubItem>
+                <SidebarMenuSkeleton showIcon />
+                <SidebarMenuSkeleton showIcon />
+              </SidebarMenuSubItem>
+            </SidebarMenuSub>
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="border-t">
-          <SidebarMenuItem className="flex justify-between gap-2">
-            <Skeleton className="size-10 rounded-full" />
-            <LogoutButton />
-          </SidebarMenuItem>
+          <SidebarMenu>
+            <SidebarMenuItem className="flex  gap-2 justify-between">
+              <Skeleton className="size-10 rounded-full" />
+              <LogoutButton />
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
     );
@@ -451,7 +523,7 @@ export function ProfileIcon({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuButton className="relative">
+        <SidebarMenuButton className="relative size-fit">
           <Avatar className="size-8">
             <AvatarImage src={profile_url} />
             <AvatarFallback>

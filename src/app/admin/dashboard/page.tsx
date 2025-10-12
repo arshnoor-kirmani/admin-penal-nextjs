@@ -19,15 +19,14 @@ import {
   UsersRoundIcon,
   Wallet2,
 } from "lucide-react";
-import { Session } from "next-auth";
 import React, { useEffect, useState } from "react";
 import CountUp from "react-countup";
-import ChartBarHorizontal from "./BarChart";
-import ChartPieLabel from "./CircelChart";
-import { DataTable } from "./DataTabel";
+import ChartBarHorizontal from "@/components/custom/admin/dashboard/BarChart";
+import ChartPieLabel from "@/components/custom/admin/dashboard/CircelChart";
+import { DataTable } from "@/components/custom/admin/dashboard/DataTabel";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-export default function Dashboard({ session }: { session: Session }) {
+export default function Dashboard() {
   const dispatch = useDispatch();
   const [isloading, setIsloading] = useState(true);
   const instituteInfo = useAppSelector(
@@ -36,7 +35,7 @@ export default function Dashboard({ session }: { session: Session }) {
   useEffect(() => {
     if (!instituteInfo.identifier) return;
     try {
-      if (instituteInfo.male_student.length === 0) setIsloading(true);
+      setIsloading(true);
       axios
         .get(`/api/get-gender-student`, {
           params: {
@@ -72,9 +71,6 @@ export default function Dashboard({ session }: { session: Session }) {
     instituteInfo.male_student,
   ]);
 
-  if (!session && !instituteInfo.identifier) {
-    return <div>Loading...</div>;
-  }
   return (
     // <main className="min-h-screen ">
 
