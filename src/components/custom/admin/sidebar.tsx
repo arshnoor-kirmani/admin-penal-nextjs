@@ -461,12 +461,13 @@ export default function Sidebar_() {
 
             return (
               visibleNavs.length > 0 && (
-                <SidebarGroup key={group.label}>
+                <SidebarGroup key={group.label} className="mr-5">
                   <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-                  <SidebarMenuSub>
+                  <SidebarMenuSub className="mr-5">
                     {visibleNavs.map((navItem) => (
-                      <SidebarMenuSubItem key={navItem.id}>
+                      <SidebarMenuSubItem key={navItem.id} className="mr-5">
                         <SidebarMenuButton
+                          className="mr-5"
                           asChild
                           aria-disabled={
                             userInformation.rules.all_permissions
@@ -479,7 +480,7 @@ export default function Sidebar_() {
                           }
                         >
                           <Link href={navItem.url}>
-                            <navItem.icon className="size-4" />
+                            <navItem.icon />
                             <span>{navItem.title}</span>
                           </Link>
                         </SidebarMenuButton>

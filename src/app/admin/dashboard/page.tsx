@@ -28,14 +28,16 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 export default function Dashboard() {
   const dispatch = useDispatch();
-  const [isloading, setIsloading] = useState(true);
+  // const [isloading, setIsloading] = useState(true);
+  const [ChartBarloading, setChartBarLoading] = useState(true);
+  const [ChartPieLoading, setChartPieLoading] = useState(true);
   const instituteInfo = useAppSelector(
     (state) => state.institute
   ) as InstituteInfo;
   useEffect(() => {
     if (!instituteInfo.identifier) return;
     try {
-      setIsloading(true);
+      setChartBarLoading(true);
       axios
         .get(`/api/get-gender-student`, {
           params: {
@@ -46,13 +48,15 @@ export default function Dashboard() {
         .then((res) => {
           if (!res.data.students) return;
           dispatch(setMaleStudents(res.data.students));
-          setIsloading(false);
+          setChartBarLoading(false);
+          setChartPieLoading(true);
           axios
             .get("/api/get-unpaid-student", {
               params: { institute_id: instituteInfo.institute_id },
             })
             .then((res) => {
               dispatch(setUnpaidStudents(res.data?.students ?? []));
+              setChartPieLoading(false);
             })
             .catch((err) => {
               console.log("Error in fetching unpaid student", err);
@@ -68,7 +72,7 @@ export default function Dashboard() {
     dispatch,
     instituteInfo.identifier,
     instituteInfo.institute_id,
-    instituteInfo.male_student,
+    // instituteInfo.male_student,
   ]);
 
   return (
@@ -90,15 +94,11 @@ export default function Dashboard() {
             <Card className="bg-transparent border-0 grid garid-cols-1 grid-rows-1 md:grid-cols-2 gap-4 py-4 md:gap-6 md:py-6">
               <ChartBarHorizontal
                 data={instituteInfo.monthly_student_enroll}
-                isloading={
-                  instituteInfo.monthly_student_enroll.length !== 0
-                    ? false
-                    : true
-                }
+                isloading={ChartBarloading}
               />
 
               <ChartPieLabel
-                isloading={isloading}
+                isloading={ChartPieLoading}
                 total_student={instituteInfo?.total_student}
                 male_student={instituteInfo?.male_student.length}
                 female_student={instituteInfo?.female_student.length}
