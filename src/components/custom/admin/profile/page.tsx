@@ -144,25 +144,25 @@ function GeneralInfoForm({
   editDisabel: boolean;
   setFormDirty: React.Dispatch<SetStateAction<boolean>>;
 }) {
-  const institute = useAppSelector((state) => state.institute);
+  const InstituteInfo = useAppSelector((state) => state.institute);
   const UpdateProfileInformation = useUpdateProfile();
   const [submitDisabel, setSubmitDisabel] = useState(false);
   const [logo_url, setLogo_url] = useState("");
   const [profile_url, setProfile_url] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
-  // if (!institute.identifier) return;
+  // if (!InstituteInfo.identifier) return;
   const form = useForm<z.infer<typeof generalInfoSchema>>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
-      logo: institute.logo,
-      profile_url: institute.logo,
-      institute_name: institute.institute_name || "**************",
-      username: institute.username || "",
-      institute_code: institute.institute_code || "IMS-12345",
-      established_year: institute.information?.established_year || 2002,
+      logo: InstituteInfo.information.logo,
+      profile_url: InstituteInfo.information.logo,
+      institute_name: InstituteInfo.institute_name || "**************",
+      username: InstituteInfo.username || "",
+      institute_code: InstituteInfo.institute_code || "IMS-12345",
+      established_year: InstituteInfo.information?.established_year || 2002,
       affiliation:
-        institute.information?.affiliation ||
+        InstituteInfo.information?.affiliation ||
         "Affiliated to CBSE, UGC Approved",
     },
   });
@@ -187,7 +187,7 @@ function GeneralInfoForm({
     values.profile_url =
       "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg";
     UpdateProfileInformation(
-      institute.institute_code,
+      InstituteInfo.institute_code,
       values,
       form.reset,
       setFormDirty
@@ -201,23 +201,24 @@ function GeneralInfoForm({
   }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
-      logo: institute.logo,
-      profile_url: institute.logo,
-      institute_name: institute.institute_name || "",
-      username: institute.username || "",
-      institute_code: institute.institute_code || "",
-      affiliation: institute.information?.affiliation || "",
-      established_year: institute.information?.established_year,
+      logo: InstituteInfo.information.logo,
+      profile_url: InstituteInfo.information.profile_url,
+      institute_name: InstituteInfo.institute_name || "",
+      username: InstituteInfo.username || "",
+      institute_code: InstituteInfo.institute_code || "",
+      affiliation: InstituteInfo.information?.affiliation || "",
+      established_year: InstituteInfo.information?.established_year,
     });
   }, [
-    institute.identifier,
+    InstituteInfo.identifier,
     form,
-    institute.logo,
-    institute.institute_name,
-    institute.username,
-    institute.institute_code,
-    institute.information?.affiliation,
-    institute.information?.established_year,
+    InstituteInfo.information.logo,
+    InstituteInfo.information.profile_url,
+    InstituteInfo.institute_name,
+    InstituteInfo.username,
+    InstituteInfo.institute_code,
+    InstituteInfo.information?.affiliation,
+    InstituteInfo.information?.established_year,
   ]);
   return (
     <Form {...form}>
@@ -236,7 +237,7 @@ function GeneralInfoForm({
                 <div className="relative">
                   <Avatar className="h-24 w-24 relative z-9">
                     <AvatarImage
-                      src={logo_url || institute.logo}
+                      src={logo_url || InstituteInfo.information.logo}
                       alt="Institute Logo"
                     />
                     <AvatarFallback>LOGO</AvatarFallback>
@@ -294,7 +295,7 @@ function GeneralInfoForm({
                 <div className="relative">
                   <Avatar className="h-24 w-24 relative z-9">
                     <AvatarImage
-                      src={profile_url || institute.profile_url}
+                      src={profile_url || InstituteInfo.information.profile_url}
                       alt="Profile Image"
                     />
                     <AvatarFallback>Profile</AvatarFallback>
@@ -439,11 +440,11 @@ function GeneralInfoForm({
 }
 
 function ContactInfoForm({
-  institute,
+  InstituteInfo,
   editDisabel,
   setFormDirty,
 }: {
-  institute: InstituteInfo;
+  InstituteInfo: InstituteInfo;
   editDisabel: boolean;
   setFormDirty: React.Dispatch<SetStateAction<boolean>>;
 }) {
@@ -451,15 +452,15 @@ function ContactInfoForm({
   const form = useForm<z.infer<typeof contactInfoSchema>>({
     resolver: zodResolver(contactInfoSchema),
     defaultValues: {
-      address: institute?.information?.address || "",
-      city: institute?.information?.city || "",
-      state: institute?.information?.state || "",
-      pincode: institute?.information?.pincode || "",
-      country: institute?.information?.country || "",
-      landline: institute?.information?.landline || "",
-      mobile: institute?.information?.mobile || "",
-      email: institute?.information?.email || "",
-      website: institute?.information?.website || "",
+      address: InstituteInfo.information?.address || "",
+      city: InstituteInfo.information?.city || "",
+      state: InstituteInfo.information?.state || "",
+      pincode: InstituteInfo.information?.pincode || "",
+      country: InstituteInfo.information?.country || "",
+      landline: InstituteInfo.information?.landline || "",
+      mobile: InstituteInfo.information?.mobile || "",
+      email: InstituteInfo.information?.email || "",
+      website: InstituteInfo.information?.website || "",
     },
   });
   const {
@@ -469,7 +470,7 @@ function ContactInfoForm({
   function onSubmit(values: z.infer<typeof contactInfoSchema>) {
     console.log(values);
     UpdateProfileInformation(
-      institute.institute_code,
+      InstituteInfo.institute_code,
       values,
       form.reset,
       setFormDirty
@@ -480,28 +481,28 @@ function ContactInfoForm({
   }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
-      address: institute.information?.address || "",
-      city: institute.information?.city || "",
-      state: institute.information?.state || "",
-      pincode: institute.information?.pincode || "",
-      country: institute.information?.country || "",
-      landline: institute.information?.landline || "",
-      mobile: institute.information?.mobile || "",
-      email: institute.information?.email || "",
-      website: institute.information?.website || "",
+      address: InstituteInfo.information?.address || "",
+      city: InstituteInfo.information?.city || "",
+      state: InstituteInfo.information?.state || "",
+      pincode: InstituteInfo.information?.pincode || "",
+      country: InstituteInfo.information?.country || "",
+      landline: InstituteInfo.information?.landline || "",
+      mobile: InstituteInfo.information?.mobile || "",
+      email: InstituteInfo.information?.email || "",
+      website: InstituteInfo.information?.website || "",
     });
   }, [
-    institute.identifier,
+    InstituteInfo.identifier,
     form,
-    institute.information?.address,
-    institute.information?.city,
-    institute.information?.state,
-    institute.information?.pincode,
-    institute.information?.country,
-    institute.information?.landline,
-    institute.information?.mobile,
-    institute.information?.email,
-    institute.information?.website,
+    InstituteInfo.information?.address,
+    InstituteInfo.information?.city,
+    InstituteInfo.information?.state,
+    InstituteInfo.information?.pincode,
+    InstituteInfo.information?.country,
+    InstituteInfo.information?.landline,
+    InstituteInfo.information?.mobile,
+    InstituteInfo.information?.email,
+    InstituteInfo.information?.website,
   ]);
   return (
     <Form {...form}>
@@ -908,11 +909,11 @@ function AcademicInfoForm() {
 // }
 
 function SettingsForm({
-  institute,
+  InstituteInfo,
   editDisabel,
   setFormDirty,
 }: {
-  institute: InstituteInfo;
+  InstituteInfo: InstituteInfo;
   editDisabel: boolean;
   setFormDirty: React.Dispatch<SetStateAction<boolean>>;
 }) {
@@ -920,11 +921,11 @@ function SettingsForm({
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      short_name: institute?.information?.short_name || "HGI",
-      currency: institute?.information?.currency || "inr",
-      timezone: institute?.information?.timezone || "ist",
+      short_name: InstituteInfo.information?.short_name || "HGI",
+      currency: InstituteInfo.information?.currency || "inr",
+      timezone: InstituteInfo.information?.timezone || "ist",
       workingHours:
-        institute?.information?.working_hours || "9:00 AM - 5:00 PM",
+        InstituteInfo.information?.working_hours || "9:00 AM - 5:00 PM",
     },
   });
   const {
@@ -934,7 +935,7 @@ function SettingsForm({
   function onSubmit(values: z.infer<typeof settingsSchema>) {
     console.log(values);
     UpdateProfileInformation(
-      institute.institute_code,
+      InstituteInfo.institute_code,
       values,
       form.reset,
       setFormDirty
@@ -946,18 +947,19 @@ function SettingsForm({
   }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
-      currency: institute.information?.currency || "inr",
-      timezone: institute.information?.timezone || "ist",
-      workingHours: institute.information?.working_hours || "9:00 AM - 5:00 PM",
-      short_name: institute.information?.short_name || "HGI",
+      currency: InstituteInfo.information?.currency || "inr",
+      timezone: InstituteInfo.information?.timezone || "ist",
+      workingHours:
+        InstituteInfo.information?.working_hours || "9:00 AM - 5:00 PM",
+      short_name: InstituteInfo.information?.short_name || "HGI",
     });
   }, [
-    institute.identifier,
+    InstituteInfo.identifier,
     form,
-    institute.information?.currency,
-    institute.information?.timezone,
-    institute.information?.working_hours,
-    institute.information?.short_name,
+    InstituteInfo.information?.currency,
+    InstituteInfo.information?.timezone,
+    InstituteInfo.information?.working_hours,
+    InstituteInfo.information?.short_name,
   ]);
   return (
     <Form {...form}>
@@ -966,7 +968,7 @@ function SettingsForm({
           <CardHeader>
             <CardTitle>System Settings</CardTitle>
             <CardDescription>
-              Configure system-wide settings for your institute.
+              Configure system-wide settings for your InstituteInfo.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -1094,7 +1096,7 @@ function Profile() {
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
               <AvatarImage
-                src={InstituteInfo.profile_url}
+                src={InstituteInfo.information.profile_url}
                 className="object-cover "
                 alt="Profile"
               />
@@ -1194,7 +1196,7 @@ function Profile() {
         <TabsContent value="contact">
           <ContactInfoForm
             setFormDirty={setFormDirty}
-            institute={InstituteInfo}
+            InstituteInfo={InstituteInfo}
             editDisabel={editDisabel}
           />
         </TabsContent>
@@ -1207,7 +1209,7 @@ function Profile() {
         <TabsContent value="settings">
           <SettingsForm
             setFormDirty={setFormDirty}
-            institute={InstituteInfo}
+            InstituteInfo={InstituteInfo}
             editDisabel={editDisabel}
           />
         </TabsContent>

@@ -110,8 +110,8 @@ export default function SignInForm({
       form
         .trigger("Email")
         .then(async (isValid) => {
+          setInstituteName("");
           if (isValid) {
-            setInstituteName("");
             setCheckingEmail(true);
             const checkEmail = await axios.get(
               "/api/auth/check-register-email",
@@ -209,7 +209,7 @@ export default function SignInForm({
                           </span>
                         </span>
                       )}
-                      {!!instituteName && <FormMessage className="text-xs" />}
+                      {<FormMessage className="text-xs" />}
                     </FormItem>
                   )}
                 />

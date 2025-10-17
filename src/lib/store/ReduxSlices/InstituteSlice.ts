@@ -5,39 +5,39 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
 export interface InstituteInfo {
   information: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    country: string;
-    landline: string;
-    mobile: string;
-    email: string;
-    website: string;
-    short_name: string;
-    currency: string;
-    timezone: string;
-    working_hours: string;
-    institute_type: string;
-    affiliation: string;
-    established_year: number;
-    institute_code: string;
-    institute_name: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+    landline?: string;
+    mobile?: string;
+    email?: string;
+    website?: string;
+    short_name?: string;
+    currency?: string;
+    timezone?: string;
+    working_hours?: string;
+    institute_type?: string;
+    affiliation?: string;
+    established_year?: number;
+    institute_code?: string;
+    institute_name?: string;
     logo: string;
     profile_url: string;
   };
   institute_code: string;
   institute_name: string;
   institute_short_name: string;
-  logo: string;
-  profile_url: string;
+  // logo: string;
+  // profile_url: string;
   institute_id: string;
   username: string;
   identifier: string;
   user_type: string;
-  users: rules[];
+  users: [];
   courses: Course[];
-  rules: { [key: string]: boolean | undefined };
+  rules: rules;
   total_student: number;
   total_teacher: number;
   total_courses: number;
@@ -76,11 +76,11 @@ const initialState: InstituteInfo = {
     profile_url: "",
   },
   institute_code: "",
-  logo: "",
+  // logo: "",
   institute_id: "",
   username: "",
   user_type: "institute",
-  profile_url: "",
+  // profile_url: "",
   identifier: "",
   institute_name: "",
   total_student: 0,
@@ -90,25 +90,25 @@ const initialState: InstituteInfo = {
   users: [],
   courses: [],
   rules: {
-    all_permissions: undefined,
-    profile_edit: undefined,
-    send_message: undefined,
-    inbox_message: undefined,
-    website_setting: undefined,
-    add_teacher: undefined,
-    edit_teacher: undefined,
-    delete_teacher: undefined,
-    salary_management: undefined,
-    add_student: undefined,
-    edit_student: undefined,
-    delete_student: undefined,
-    fees_management: undefined,
-    result_permession: undefined,
-    attendance: undefined,
-    manage_users: undefined,
-    settings: undefined,
+    all_permissions: false,
+    profile_edit: false,
+    send_message: false,
+    inbox_message: false,
+    website_setting: false,
+    add_teacher: false,
+    edit_teacher: false,
+    delete_teacher: false,
+    salary_management: false,
+    add_student: false,
+    edit_student: false,
+    delete_student: false,
+    fees_management: false,
+    result_permession: false,
+    attendance: false,
+    manage_users: false,
+    settings: false,
     show_student: false,
-    show_teacher: undefined,
+    show_teacher: false,
   },
   institute_short_name: "",
   recent: [],
@@ -167,8 +167,8 @@ export const instituteSlice = createSlice({
     setProfileInfo: (state, action: PayloadAction<Partial<InstituteInfo>>) => {
       console.log("Profile Action", action.payload);
       const values = action.payload;
-      if (values.logo) state.logo = values.logo;
-      if (values.profile_url) state.profile_url = values.profile_url;
+      // if (values.logo) state.logo = values.logo;
+      // if (values.profile_url) state.profile_url = values.profile_url;
       if (values.institute_name) state.institute_name = values.institute_name;
       if (values.institute_code) state.institute_code = values.institute_code;
       if (values.username) state.username = values.username;

@@ -55,6 +55,7 @@ import {
 import React, { SetStateAction, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import appwriteStorage from "@/models/appwrite/appwrite";
 
 // Schemas for each form
 const generalInfoSchema = z.object({
@@ -136,15 +137,14 @@ function useUpdateProfile() {
 }
 // =============================================================================================================
 function GeneralInfoForm({
-  // institute,
+  institute,
   editDisabel,
   setFormDirty,
 }: {
-  // institute: InstituteInfo;
+  institute: InstituteInfo;
   editDisabel: boolean;
   setFormDirty: React.Dispatch<SetStateAction<boolean>>;
 }) {
-  const institute = useAppSelector((state) => state.institute);
   const UpdateProfileInformation = useUpdateProfile();
   const [submitDisabel, setSubmitDisabel] = useState(false);
   const [logo_url, setLogo_url] = useState("");
@@ -155,8 +155,8 @@ function GeneralInfoForm({
   const form = useForm<z.infer<typeof generalInfoSchema>>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
-      logo: institute.logo,
-      profile_url: institute.logo,
+      logo: institute.information.logo,
+      profile_url: institute.information.profile_url,
       institute_name: institute.institute_name || "**************",
       username: institute.username || "",
       institute_code: institute.institute_code || "IMS-12345",
@@ -169,23 +169,28 @@ function GeneralInfoForm({
   const {
     formState: { isDirty },
   } = form;
-  async function UploadFile(file: File, uploadType: string) {
-    console.log(file);
-    console.log("file", file.webkitRelativePath);
-    const url = URL.createObjectURL(file);
-    if (uploadType === "logo") setLogo_url(url);
-    if (uploadType === "profile") setProfile_url(url);
-    return url;
+  async function UploadFile(file: File) {
+    if (!file) return;
+    try {
+      return await appwriteStorage.uploadFile(file).then(async (res) => {
+        if (!res) throw new Error("File upload failed");
+        return await appwriteStorage.getFileView(res.$id);
+      });
+    } catch (error) {
+      console.error("Failed to upload file:", error);
+    }
   }
-  function onSubmit(values: z.infer<typeof generalInfoSchema>) {
-    console.log(values);
-    // TODO::
-    if (logoFile) UploadFile(logoFile, "logo");
-    if (profileFile) UploadFile(profileFile, "profile");
-    values.logo =
-      "https://images.pexels.com/photos/6809665/pexels-photo-6809665.jpeg";
-    values.profile_url =
-      "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg";
+  async function onSubmit(values: z.infer<typeof generalInfoSchema>) {
+    console.log("logo_url", logo_url, "profile_url", profile_url);
+    if (logoFile) {
+      const uploadRes = await UploadFile(logoFile);
+      values.logo = uploadRes || "";
+    }
+    if (profileFile) {
+      const uploadRes = await UploadFile(profileFile);
+      values.profile_url = uploadRes || "";
+    }
+    console.log("Values...", values);
     UpdateProfileInformation(
       institute.institute_code,
       values,
@@ -194,6 +199,8 @@ function GeneralInfoForm({
     ).then(() => {
       setSubmitDisabel(false);
     });
+
+    console.log("logo_url", logo_url, "profile_url", profile_url);
   }
   useEffect(() => {
     setSubmitDisabel(isDirty);
@@ -201,8 +208,8 @@ function GeneralInfoForm({
   }, [isDirty, setFormDirty]);
   useEffect(() => {
     form.reset({
-      logo: institute.logo,
-      profile_url: institute.logo,
+      logo: institute.information.logo,
+      profile_url: institute.information.profile_url,
       institute_name: institute.institute_name || "",
       username: institute.username || "",
       institute_code: institute.institute_code || "",
@@ -212,7 +219,8 @@ function GeneralInfoForm({
   }, [
     institute.identifier,
     form,
-    institute.logo,
+    institute.information.logo,
+    institute.information.profile_url,
     institute.institute_name,
     institute.username,
     institute.institute_code,
@@ -236,7 +244,7 @@ function GeneralInfoForm({
                 <div className="relative">
                   <Avatar className="h-24 w-24 relative z-9">
                     <AvatarImage
-                      src={logo_url || institute.logo}
+                      src={logo_url || institute.information.logo}
                       alt="Institute Logo"
                     />
                     <AvatarFallback>LOGO</AvatarFallback>
@@ -294,7 +302,7 @@ function GeneralInfoForm({
                 <div className="relative">
                   <Avatar className="h-24 w-24 relative z-9">
                     <AvatarImage
-                      src={profile_url || institute.profile_url}
+                      src={profile_url || institute.information.profile_url}
                       alt="Profile Image"
                     />
                     <AvatarFallback>Profile</AvatarFallback>
@@ -1086,7 +1094,6 @@ function Profile() {
   const [formDirty, setFormDirty] = useState(false);
   const [editDisabel, setEditDisabel] = useState(false);
   const InstituteInfo = useAppSelector((state) => state.institute);
-  console.log(InstituteInfo);
   return (
     <div className="p-1 pt-0 md:p-8 gap-3">
       <Card className="mb-4">
@@ -1094,7 +1101,7 @@ function Profile() {
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
               <AvatarImage
-                src={InstituteInfo.profile_url}
+                src={InstituteInfo.information.profile_url}
                 className="object-cover "
                 alt="Profile"
               />
@@ -1114,6 +1121,11 @@ function Profile() {
           {!editDisabel && (
             <Button
               variant="outline"
+              disabled={
+                InstituteInfo.rules.all_permissions
+                  ? false
+                  : !InstituteInfo.rules.profile_edit
+              }
               className="hidden md:flex w-full md:w-auto cursor-pointer"
               onClick={() => setEditDisabel((prev) => !prev)}
             >
@@ -1187,7 +1199,7 @@ function Profile() {
         <TabsContent value="general">
           <GeneralInfoForm
             setFormDirty={setFormDirty}
-            // institute={InstituteInfo}
+            institute={InstituteInfo}
             editDisabel={editDisabel}
           />
         </TabsContent>

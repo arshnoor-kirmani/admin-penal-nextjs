@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fira_Sans } from "next/font/google";
+// import { Fira_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/custom/theme-provider";
 import { Toaster } from "sonner";
@@ -9,11 +9,12 @@ export const metadata: Metadata = {
   title: "Admin Panel",
   description: "Admin Panel for managing institute resources",
 };
-const fira = Fira_Sans({
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
-});
+// const fira = Fira_Sans({
+//   weight: ["400"],
+//   style: ["normal", "italic"],
+//   subsets: ["latin"],
+//   display: "swap",
+// });
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={fira.className}>
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

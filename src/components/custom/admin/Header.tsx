@@ -64,10 +64,10 @@ export function Header({ user_type }: { user_type: string }) {
           <ProfileIcon
             profile_url={
               user_type === "institute"
-                ? InstitueInfo.logo
+                ? InstitueInfo.information.profile_url
                 : user_type === "student"
-                ? StudentInfo.profile_url
-                : TeacherInfo.profile_url
+                ? StudentInfo.information.profile_url
+                : TeacherInfo.information.profile_url
             }
             username={
               user_type === "institute"
