@@ -28,18 +28,9 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/custom/redux-hooks";
-import {
-  setInstituteInfo,
-  InstituteInfo,
-} from "@/lib/store/ReduxSlices/InstituteSlice";
-import {
-  setStudentInfo,
-  StudentInfo,
-} from "@/lib/store/ReduxSlices/StudentSlice";
-import {
-  setTeacherInfo,
-  TeacherInfo,
-} from "@/lib/store/ReduxSlices/TeacherSlice";
+import { setInstituteInfo } from "@/lib/store/ReduxSlices/InstituteSlice";
+import { setStudentInfo } from "@/lib/store/ReduxSlices/StudentSlice";
+import { setTeacherInfo } from "@/lib/store/ReduxSlices/TeacherSlice";
 
 import {
   Sidebar,
@@ -71,6 +62,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // ===================== Navigation =====================
+
 const userNavigations: {
   label: string;
   navs_item: {
@@ -219,26 +211,10 @@ export default function Sidebar_() {
   const dispatch = useAppDispatch();
 
   const [fetchingInfo, setFetchingInfo] = useState(true);
-  const [userInformation, setUserInformation] = useState<
-    InstituteInfo | StudentInfo | TeacherInfo
-  >({
-    logo: "",
-    courses: [],
-    institute_id: "",
-    username: "",
-    identifier: "",
-    profile_url: "",
-    user_type: "",
-    institute_name: "",
-    users: [],
-    rules: { all_permissions: undefined },
-    institute_short_name: "",
-  });
-
+  const [user_type, setUserType] = useState("");
   const instituteInfo = useAppSelector((state) => state.institute);
   const studentInfo = useAppSelector((state) => state.student);
   const teacherInfo = useAppSelector((state) => state.teacher);
-
   // ===================== Fetch User Info =====================
   useEffect(() => {
     const fetchInstituteInfo = async (
@@ -299,9 +275,6 @@ export default function Sidebar_() {
               if (data === undefined) {
                 toast.error("Somthing wrong.....");
               }
-              setUserInformation({
-                ...data?.payload,
-              } as InstituteInfo & StudentInfo & TeacherInfo);
             }
           })
           .catch((err) => {
@@ -316,37 +289,26 @@ export default function Sidebar_() {
       }
     };
     if (!session) return;
-    if (session?.identifier === userInformation.identifier) return;
-    if (!!userInformation.identifier) {
+    if (
+      session?.identifier === instituteInfo.identifier ||
+      session?.identifier === studentInfo.identifier ||
+      session?.identifier === teacherInfo.identifier
+    )
+      return;
+    if (
+      !!(
+        instituteInfo.identifier ||
+        studentInfo.identifier ||
+        teacherInfo.identifier
+      )
+    ) {
       return;
     }
     const Promis = new Promise(async (resolve) => {
       const { identifier, user_type, institute_id } = session;
+      setUserType(user_type);
       if (!identifier || !user_type || !institute_id) {
         toast.error("Invalid session data. Please log in again.");
-        return;
-      }
-      if (userInformation.identifier === identifier) return;
-      if (
-        user_type === "institute" &&
-        instituteInfo.identifier === identifier
-      ) {
-        setUserInformation(instituteInfo);
-        setFetchingInfo(false);
-        return;
-      } else if (
-        user_type === "student" &&
-        studentInfo.identifier === identifier
-      ) {
-        setUserInformation(studentInfo);
-        setFetchingInfo(false);
-        return;
-      } else if (
-        user_type === "teacher" &&
-        teacherInfo.identifier === identifier
-      ) {
-        setUserInformation(teacherInfo);
-        setFetchingInfo(false);
         return;
       }
       await fetchInstituteInfo(identifier, institute_id, user_type).then(
@@ -370,7 +332,9 @@ export default function Sidebar_() {
     instituteInfo,
     studentInfo,
     teacherInfo,
-    userInformation.identifier,
+    instituteInfo.identifier,
+    studentInfo.identifier,
+    teacherInfo.identifier,
     dispatch,
   ]);
   // ===================== Loading Skeleton =====================
@@ -433,16 +397,35 @@ export default function Sidebar_() {
       <SidebarHeader>
         <div className="flex flex-col items-center gap-2">
           <Avatar className="size-14">
-            <AvatarImage src={userInformation.logo} />
+            <AvatarImage
+              src={
+                user_type === "institute"
+                  ? instituteInfo.information.logo
+                  : user_type === "student"
+                  ? studentInfo.information.profile_url
+                  : teacherInfo.information.profile_url
+              }
+            />
             <AvatarFallback>
-              {userInformation.username
+              {(user_type === "institute"
+                ? instituteInfo.information.institute_name
+                : user_type === "student"
+                ? studentInfo.username
+                : teacherInfo.username
+              )
                 ?.split(" ")
                 .map((n) => n[0])
                 .join("")
                 .toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <h1 className="text-sm font-medium">{userInformation.username}</h1>
+          <h1 className="text-sm font-medium">
+            {user_type === "institute"
+              ? instituteInfo.information.institute_name
+              : user_type === "student"
+              ? studentInfo.username
+              : teacherInfo.username}
+          </h1>
         </div>
       </SidebarHeader>
 
@@ -451,12 +434,22 @@ export default function Sidebar_() {
           {userNavigations.map((group) => {
             const visibleNavs = group.navs_item.filter(
               (item) =>
-                userInformation.rules.all_permissions ||
-                userInformation.rules[item.id] ||
+                (user_type === "institute"
+                  ? instituteInfo.rules.all_permissions
+                  : user_type === "student"
+                  ? studentInfo.rules.all_permissions
+                  : teacherInfo.rules.all_permissions) ||
+                (user_type === "institute"
+                  ? instituteInfo.rules[
+                      item.id as keyof typeof instituteInfo.rules
+                    ]
+                  : user_type === "student"
+                  ? studentInfo.rules[item.id as keyof typeof studentInfo.rules]
+                  : teacherInfo.rules[
+                      item.id as keyof typeof teacherInfo.rules
+                    ]) ||
                 item.id === "dashboard" ||
-                ["institute", "admin", "user"].includes(
-                  userInformation.user_type
-                )
+                ["institute", "admin", "user"].includes(user_type)
             );
 
             return (
@@ -470,10 +463,37 @@ export default function Sidebar_() {
                           className="mr-5"
                           asChild
                           aria-disabled={
-                            userInformation.rules.all_permissions
+                            (user_type === "institute"
+                              ? instituteInfo
+                              : user_type === "student"
+                              ? studentInfo
+                              : teacherInfo
+                            ).rules.all_permissions
                               ? false
-                              : userInformation.rules[navItem.id]
-                              ? !userInformation.rules[navItem.id]
+                              : (
+                                  user_type === "institute"
+                                    ? instituteInfo.rules[
+                                        navItem.id as keyof typeof instituteInfo.rules
+                                      ]
+                                    : user_type === "student"
+                                    ? studentInfo.rules[
+                                        navItem.id as keyof typeof studentInfo.rules
+                                      ]
+                                    : teacherInfo.rules[
+                                        navItem.id as keyof typeof teacherInfo.rules
+                                      ]
+                                )
+                              ? !(user_type === "institute"
+                                  ? instituteInfo.rules[
+                                      navItem.id as keyof typeof instituteInfo.rules
+                                    ]
+                                  : user_type === "student"
+                                  ? studentInfo.rules[
+                                      navItem.id as keyof typeof studentInfo.rules
+                                    ]
+                                  : teacherInfo.rules[
+                                      navItem.id as keyof typeof teacherInfo.rules
+                                    ])
                               : navItem.id === "dashboard"
                               ? false
                               : true
@@ -497,10 +517,38 @@ export default function Sidebar_() {
       <SidebarFooter className="border-t">
         <SidebarMenuItem className="flex justify-between items-center gap-2">
           <ProfileIcon
-            profile_url={userInformation.profile_url}
-            username={userInformation.username}
-            identifier={userInformation.identifier}
-            user_type={userInformation.user_type}
+            profile_url={
+              (user_type === "institute"
+                ? instituteInfo
+                : user_type === "student"
+                ? studentInfo
+                : teacherInfo
+              )?.information?.profile_url
+            }
+            username={
+              (user_type === "institute"
+                ? instituteInfo
+                : user_type === "student"
+                ? studentInfo
+                : teacherInfo
+              )?.username
+            }
+            identifier={
+              (user_type === "institute"
+                ? instituteInfo
+                : user_type === "student"
+                ? studentInfo
+                : teacherInfo
+              )?.identifier
+            }
+            user_type={
+              (user_type === "institute"
+                ? instituteInfo
+                : user_type === "student"
+                ? studentInfo
+                : teacherInfo
+              )?.user_type
+            }
           />
           <LogoutButton />
         </SidebarMenuItem>
