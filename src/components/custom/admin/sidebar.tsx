@@ -45,6 +45,7 @@ import {
   SidebarMenuSkeleton,
   SidebarMenuSub,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -215,6 +216,7 @@ export default function Sidebar_() {
   const instituteInfo = useAppSelector((state) => state.institute);
   const studentInfo = useAppSelector((state) => state.student);
   const teacherInfo = useAppSelector((state) => state.teacher);
+  const { setOpenMobile } = useSidebar();
   // ===================== Fetch User Info =====================
   useEffect(() => {
     const fetchInstituteInfo = async (
@@ -393,7 +395,7 @@ export default function Sidebar_() {
 
   // ===================== Render Sidebar =====================
   return (
-    <Sidebar side="left" variant="floating">
+    <Sidebar side="left" variant="floating" id="main-sidebar">
       <SidebarHeader>
         <div className="flex flex-col items-center gap-2">
           <Avatar className="size-14">
@@ -460,6 +462,9 @@ export default function Sidebar_() {
                     {visibleNavs.map((navItem) => (
                       <SidebarMenuSubItem key={navItem.id} className="mr-5">
                         <SidebarMenuButton
+                          onClick={() => {
+                            setOpenMobile(false);
+                          }}
                           className="mr-5"
                           asChild
                           aria-disabled={

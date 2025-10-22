@@ -31,12 +31,12 @@ export default async function RootLayout({
 
   return (
     <SessionProvider>
-      <SidebarProvider className="w-full h-dvh">
+      <SidebarProvider>
         <Sidebar />
-        <div className="relative w-full h-full m-0">
-          <SidebarInset className="px-1 md:px-2 w-full min-h-full max-h-fix">
+        <div className="relative m-0 w-full">
+          <SidebarInset className="flex flex-col px-1 md:px-2">
             <Header user_type={session.user_type} />
-            <main className="w-full h-full">
+            <main className="flex-1 overflow-y-auto">
               {!session ? (
                 <div className="w-full h-90 flex justify-center items-center">
                   <LoaderIcon

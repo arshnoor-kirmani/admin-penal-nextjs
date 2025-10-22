@@ -1,6 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ShieldCheck, UserCheck, UserPlus } from "lucide-react";
+import {
+  CircleUserRound,
+  ShieldCheck,
+  SquareUser,
+  University,
+  UserCheck,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function Section() {
@@ -126,19 +134,19 @@ export default function Section() {
             id="features"
             className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 "
           >
-            <Card className="p-4 flex flex-col  border shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
+            <Card className="p-4 shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
               <div className="font-semibold">Attendance</div>
               <div className="text-sm text-muted-foreground ">
                 Quick marking, auto reports and exports.
               </div>
             </Card>{" "}
-            <Card className="p-4  border shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
+            <Card className="p-4 shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
               <div className="font-semibold">Assignments</div>
               <div className="text-sm text-muted-foreground ">
                 Upload, grade and share feedback.
               </div>
             </Card>
-            <Card className="p-4  border shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
+            <Card className="p-4 shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
               <div className="font-semibold">Fees & Reporting</div>
               <div className="text-sm text-muted-foreground ">
                 Invoices, receipts and financial reports.
@@ -150,21 +158,21 @@ export default function Section() {
       <Card className="my-3 p-4 border shadow-lg">
         <div className="text-lg font-semibold mb-2 grid grid-cols-1 md:grid-cols-4 gap-2">
           <RoleCard
-            icon={<ShieldCheck />}
+            icon={<University />}
             title="Institute Login"
             desc="Full access to all features and settings."
             color="bg-chart-1"
             href="/auth/institute-login"
           />
           <RoleCard
-            icon={<UserCheck />}
+            icon={<SquareUser />}
             title="Teacher Login"
             desc="Manage classes, assignments, and student progress."
             color="bg-chart-2"
             href="/auth/teacher-login"
           />
           <RoleCard
-            icon={<UserPlus />}
+            icon={<CircleUserRound />}
             title="Student Login"
             desc="Access assignments, submit work, and track progress."
             color="bg-chart-4"
@@ -172,7 +180,7 @@ export default function Section() {
           />
 
           <RoleCard
-            icon={<UserPlus />}
+            icon={<Users />}
             title="Guest Login"
             desc="Limited access to view content."
             color="bg-chart-5"

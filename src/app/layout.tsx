@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/custom/theme-provider";
 import { Toaster } from "sonner";
 import StoreProvider from "@/components/custom/StoreProvider";
+import RouteLoader from "@/components/custom/RouteLoading";
 
 export const metadata: Metadata = {
   title: "Admin Panel",
@@ -22,13 +23,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="w-dvw h-dvh font-sans antialiased">
+      <body className="w-screen h-screen  font-sans antialiased">
+        {/* <body className="w-screen font-sans antialiased"> */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
+          <RouteLoader />
           <StoreProvider> {children}</StoreProvider>
         </ThemeProvider>
         <Toaster richColors />
