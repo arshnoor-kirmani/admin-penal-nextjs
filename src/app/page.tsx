@@ -1,34 +1,36 @@
-import { ThemeToggle } from "@/components/custom/theme-toggle";
-import { Button } from "@/components/ui/button";
+import Header from "@/components/custom/Header";
 import Link from "next/link";
-
+import Section from "@/components/custom/Section";
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <div className="absolute top-1 right-1">
-        <ThemeToggle />
-      </div>
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1 className="text-3xl">Institute Mangement System </h1>
-        <div className="grid grid-cols-2 gap-2">
-          <Link href="/auth/institute-login">
-            <Button variant="default">Institute Login</Button>
+    <div className="w-full h-full flex flex-col overflow-x-hidden">
+      {/* <div> */}
+      <Header />
+      {/* </div> */}
+      <main>
+        <Section />
+      </main>
+      <footer className="text-sm border-t w-full h-20 p-4 flex flex-col md:flex-row gap-2 justify-between items-center text-muted-foreground">
+        <div>
+          {" "}
+          © 2023{" "}
+          <Link href="/" className="hover:underline">
+            EduNexus
           </Link>
-          <Link href="/auth/create-institute-account">
-            <Button variant="default">Create Institute </Button>
+          . All rights reserved.
+        </div>
+        <div className="space-x-4 mr-3">
+          <Link className="hover:underline" href="#">
+            Support
           </Link>
-          <Link href="/auth/student-login">
-            <Button variant="default">Student Login</Button>
+          <Link className="hover:underline" href="#">
+            Privacy
           </Link>
-          <Link href="/auth/teacher-login">
-            <Button variant="default">Teacher Login</Button>
-          </Link>
-          <Link href="/auth/user-login">
-            <Button variant="default">User Login</Button>
+          <Link className="hover:underline" href="#">
+            Terms
           </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center"></footer>
+      </footer>
     </div>
   );
 }
